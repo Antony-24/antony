@@ -158,9 +158,11 @@ const Projects = () => {
   const cloned = [...projects, ...projects, ...projects];
 
   // Responsive: 1 card on mobile, 3 on desktop
+  const [isMounted, setIsMounted] = useState(false);
   const [visible, setVisible] = useState(3);
 
   useEffect(() => {
+    setIsMounted(true);
     const update = () => setVisible(window.innerWidth < 768 ? 1 : 3);
     update(); // run once on mount
     window.addEventListener("resize", update);
@@ -218,7 +220,7 @@ const Projects = () => {
   };
 
   // CSS % calculation
-  const trackWidth = (cloned.length / visible) * 100;
+  const trackWidth = (cloned.length / (isMounted ? visible : 3)) * 100;
   const cardWidth = 100 / cloned.length;
   const translateX = -(current * cardWidth);
 
