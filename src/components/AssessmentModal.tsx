@@ -337,12 +337,12 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
             <div className="flex flex-col flex-1 relative z-10 h-full justify-between">
               
               {/* Progress Panel */}
-              <div className="p-6 md:p-8 border-b border-white/5 bg-white/[0.01]">
+              <div className="p-6 md:p-8 pr-16 md:pr-8 border-b border-white/5 bg-white/[0.01]">
                 <div className="flex justify-between items-center mb-3">
-                  <span className="text-xs uppercase font-bold tracking-widest text-[#8f8f7c]">
+                  <span className="text-xs uppercase font-bold tracking-widest text-[#8f8f7c] truncate pr-2">
                     Category: {currentQuestion.category}
                   </span>
-                  <span className="text-xs font-bold text-foreground/45">
+                  <span className="text-xs font-bold text-foreground/45 shrink-0">
                     {currentIdx + 1} / {QUESTIONS.length}
                   </span>
                 </div>

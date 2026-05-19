@@ -43,6 +43,17 @@ const About = () => {
     },
   };
 
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <section id="about" className="section-padding bg-card/30 font-poppins relative overflow-hidden">
       <div className="container mx-auto relative z-10">
@@ -50,9 +61,9 @@ const About = () => {
 
           {/* Timeline & Bio */}
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
+            initial={isMobile ? "visible" : "hidden"}
+            whileInView={isMobile ? undefined : "visible"}
+            viewport={isMobile ? undefined : { once: true, amount: 0.15 }}
             variants={staggerContainer}
           >
             <motion.h2
@@ -97,9 +108,9 @@ const About = () => {
 
           {/* Grid of Skill Cards */}
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
+            initial={isMobile ? "visible" : "hidden"}
+            whileInView={isMobile ? undefined : "visible"}
+            viewport={isMobile ? undefined : { once: true, amount: 0.15 }}
             variants={staggerContainer}
             className="grid grid-cols-2 gap-4 lg:mt-16"
           >

@@ -62,16 +62,16 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
           ))}
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-2 md:space-x-4">
           {onOpenAssessment && (
             <motion.button
               onClick={onOpenAssessment}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-white hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-xs font-bold tracking-widest uppercase relative"
+              className="flex items-center space-x-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-white hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-[10px] md:text-xs font-bold tracking-widest uppercase relative"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping absolute left-3 top-1/2 -translate-y-1/2"></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-600 ml-1"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping absolute left-2 md:left-3 top-1/2 -translate-y-1/2"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 ml-0.5 md:ml-1"></span>
               <span>AI Audit</span>
             </motion.button>
           )}
@@ -80,7 +80,7 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
             href="#contact"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="px-6 py-2 rounded-full bg-[#44443a] text-white font-semibold text-sm hover:bg-white hover:text-black transition-all"
+            className="px-4 py-1.5 md:px-6 md:py-2 rounded-full bg-[#44443a] text-white font-semibold text-xs md:text-sm hover:bg-white hover:text-black transition-all shrink-0"
           >
             Hire Me
           </motion.a>

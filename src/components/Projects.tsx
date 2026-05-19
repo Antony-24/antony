@@ -227,15 +227,26 @@ const Projects = () => {
 
   const activeIndex = current % N;
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <section id="projects" className="section-padding bg-background font-poppins relative overflow-hidden">
       <div className="container mx-auto relative z-10">
 
         {/* Header */}
         <motion.div 
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.2 }}
+          initial={isMobile ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
+          whileInView={isMobile ? undefined : { opacity: 1, y: 0 }}
+          viewport={isMobile ? undefined : { once: true, amount: 0.2 }}
           transition={{ type: "spring", stiffness: 80, damping: 14 }}
           className="flex flex-col md:flex-row justify-between items-end mb-16"
         >
@@ -250,9 +261,9 @@ const Projects = () => {
 
         {/* Slider */}
         <motion.div
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, amount: 0.15 }}
+          initial={isMobile ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
+          whileInView={isMobile ? undefined : { opacity: 1, y: 0 }}
+          viewport={isMobile ? undefined : { once: true, amount: 0.15 }}
           transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.1 }}
           className="relative"
           onMouseEnter={() => setPaused(true)}
@@ -311,9 +322,9 @@ const Projects = () => {
 
         {/* Dots + Counter */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          initial={isMobile ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+          whileInView={isMobile ? undefined : { opacity: 1, y: 0 }}
+          viewport={isMobile ? undefined : { once: true }}
           transition={{ delay: 0.2, duration: 0.5 }}
           className="flex items-center justify-center gap-6 mt-10"
         >

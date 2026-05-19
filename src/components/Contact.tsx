@@ -122,6 +122,17 @@ const Contact = ({ selectedService, setSelectedService }: ContactProps = {}) => 
     }
   };
 
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <section id="contact" className="section-padding font-poppins relative overflow-hidden">
       <div className="container mx-auto relative z-10">
@@ -129,9 +140,9 @@ const Contact = ({ selectedService, setSelectedService }: ContactProps = {}) => 
           
           {/* Details Column */}
           <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            initial={isMobile ? "visible" : "hidden"}
+            whileInView={isMobile ? undefined : "visible"}
+            viewport={isMobile ? undefined : { once: true, amount: 0.2 }}
             variants={staggerContainer}
           >
             <motion.h2 
@@ -244,11 +255,11 @@ const Contact = ({ selectedService, setSelectedService }: ContactProps = {}) => 
 
           {/* Form Card Column */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, x: 50 }}
-            whileInView={{ opacity: 1, scale: 1, x: 0 }}
-            viewport={{ once: true, amount: 0.15 }}
+            initial={isMobile ? { opacity: 1, scale: 1, x: 0 } : { opacity: 0, scale: 0.95, x: 50 }}
+            whileInView={isMobile ? undefined : { opacity: 1, scale: 1, x: 0 }}
+            viewport={isMobile ? undefined : { once: true, amount: 0.15 }}
             transition={{ type: "spring", stiffness: 60, damping: 15 }}
-            whileHover={{ y: -5 }}
+            whileHover={isMobile ? undefined : { y: -5 }}
             className="glass p-8 md:p-12 rounded-[2rem] border border-white/5 hover:border-[#44443a]/30 transition-all duration-500 shadow-2xl shadow-black/20"
           >
             <form onSubmit={handleSubmit} className="space-y-6">
