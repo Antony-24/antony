@@ -21,29 +21,20 @@ const Contact = () => {
     setStatusMsg("");
 
     try {
-      // Smart local testing fallback (when running on localhost)
-      if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
-        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate server response latency
-        setStatus("success");
-        setStatusMsg("Mock Success: Your message has been sent successfully! (Local testing simulation)");
-        setFormState({
-          name: "",
-          email: "",
-          number: "",
-          service: "",
-          message: ""
-        });
-        return;
-      }
-
       const formData = new FormData();
+      formData.append("access_key", "3b9590e7-73a5-4881-99e7-a956c496bf2d");
       formData.append("name", formState.name);
       formData.append("email", formState.email);
       formData.append("number", formState.number);
       formData.append("service", formState.service);
       formData.append("message", formState.message);
 
-      const response = await fetch("/contact.php", {
+      // Web3Forms configurations for beautiful emails
+      formData.append("from_name", "Antony Portfolio");
+      formData.append("subject", `New Portfolio Inquiry from ${formState.name}`);
+      formData.append("replyto", formState.email);
+
+      const response = await fetch("https://api.web3forms.com/submit", {
         method: "POST",
         body: formData
       });
@@ -57,7 +48,7 @@ const Contact = () => {
 
       if (response.ok && data.success) {
         setStatus("success");
-        setStatusMsg(data.message || "Message sent successfully!");
+        setStatusMsg("Your message has been sent successfully! I will get back to you soon.");
         setFormState({
           name: "",
           email: "",
@@ -72,7 +63,7 @@ const Contact = () => {
     } catch (error) {
       console.error("Form submission error:", error);
       setStatus("error");
-      setStatusMsg("Failed to connect to the mail server. Please try again later.");
+      setStatusMsg("Failed to send your inquiry. Please check your internet connection and try again.");
     }
   };
 
