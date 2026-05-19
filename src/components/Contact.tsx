@@ -21,6 +21,21 @@ const Contact = () => {
     setStatusMsg("");
 
     try {
+      // Smart local testing fallback (when running on localhost)
+      if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+        await new Promise((resolve) => setTimeout(resolve, 1500)); // Simulate server response latency
+        setStatus("success");
+        setStatusMsg("Mock Success: Your message has been sent successfully! (Local testing simulation)");
+        setFormState({
+          name: "",
+          email: "",
+          number: "",
+          service: "",
+          message: ""
+        });
+        return;
+      }
+
       const formData = new FormData();
       formData.append("name", formState.name);
       formData.append("email", formState.email);
