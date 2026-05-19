@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { motion } from "framer-motion";
 import { ExternalLink, Github, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProjectProps {
@@ -227,22 +228,32 @@ const Projects = () => {
   const activeIndex = current % N;
 
   return (
-    <section id="projects" className="section-padding bg-background font-poppins">
-      <div className="container mx-auto">
+    <section id="projects" className="section-padding bg-background font-poppins relative overflow-hidden">
+      <div className="container mx-auto relative z-10">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-end mb-16">
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.2 }}
+          transition={{ type: "spring", stiffness: 80, damping: 14 }}
+          className="flex flex-col md:flex-row justify-between items-end mb-16"
+        >
           <div>
             <h2 className="text-white/60 font-medium mb-4 tracking-widest uppercase text-sm border-b border-[#44443a]/50 pb-2 inline-block">Portfolio</h2>
             <h3 className="text-4xl md:text-5xl font-bold">Feathers In My Cap</h3>
           </div>
-          <p className="text-foreground/40 max-w-xs mt-4 md:mt-0">
+          <p className="text-foreground/40 max-w-xs mt-4 md:mt-0 font-light">
             A selection of my recent works where design meets functionality.
           </p>
-        </div>
+        </motion.div>
 
         {/* Slider */}
-        <div
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.1 }}
           className="relative"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
@@ -296,10 +307,16 @@ const Projects = () => {
           >
             <ChevronRight size={20} />
           </button>
-        </div>
+        </motion.div>
 
         {/* Dots + Counter */}
-        <div className="flex items-center justify-center gap-6 mt-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="flex items-center justify-center gap-6 mt-10"
+        >
           <div className="flex gap-2">
             {projects.map((_, i) => (
               <button
@@ -316,9 +333,12 @@ const Projects = () => {
           <span className="text-foreground/30 text-xs tabular-nums">
             {String(activeIndex + 1).padStart(2, "0")} / {String(N).padStart(2, "0")}
           </span>
-        </div>
+        </motion.div>
 
       </div>
+      
+      {/* Decorative Glow */}
+      <div className="absolute top-1/4 right-0 w-80 h-80 bg-[#44443a]/5 blur-[120px] rounded-full pointer-events-none"></div>
     </section>
   );
 };
