@@ -4,7 +4,12 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Send, Github, Linkedin, Instagram, Facebook } from "lucide-react";
 
-const Contact = () => {
+interface ContactProps {
+  selectedService?: string;
+  setSelectedService?: (service: string) => void;
+}
+
+const Contact = ({ selectedService, setSelectedService }: ContactProps = {}) => {
   const [formState, setFormState] = useState({
     name: "",
     email: "",
@@ -12,6 +17,19 @@ const Contact = () => {
     service: "",
     message: ""
   });
+
+  React.useEffect(() => {
+    if (selectedService) {
+      setFormState((prev) => ({
+        ...prev,
+        service: selectedService
+      }));
+      // Reset the shared state so it does not interfere with future edits
+      if (setSelectedService) {
+        setSelectedService("");
+      }
+    }
+  }, [selectedService, setSelectedService]);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [statusMsg, setStatusMsg] = useState("");
 

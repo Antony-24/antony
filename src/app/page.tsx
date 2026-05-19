@@ -1,15 +1,17 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Projects from "@/components/Projects";
+import AuditCTA from "@/components/AuditCTA";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
 
 export default function Home() {
+  const [selectedService, setSelectedService] = useState("");
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -36,7 +38,8 @@ export default function Home() {
         <Hero />
         <About />
         <Projects />
-        <Contact />
+        <AuditCTA setSelectedService={setSelectedService} />
+        <Contact selectedService={selectedService} setSelectedService={setSelectedService} />
         <Footer />
       </div>
     </main>

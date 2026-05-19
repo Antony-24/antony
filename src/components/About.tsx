@@ -47,7 +47,7 @@ const About = () => {
     <section id="about" className="section-padding bg-card/30 font-poppins relative overflow-hidden">
       <div className="container mx-auto relative z-10">
         <div className="grid lg:grid-cols-2 gap-20 items-start">
-          
+
           {/* Timeline & Bio */}
           <motion.div
             initial="hidden"
@@ -55,32 +55,32 @@ const About = () => {
             viewport={{ once: true, amount: 0.15 }}
             variants={staggerContainer}
           >
-            <motion.h2 
+            <motion.h2
               variants={timelineItemVariants}
               className="text-white/60 font-medium mb-4 tracking-widest uppercase text-sm border-b border-[#44443a]/50 pb-2 inline-block"
             >
               About Me
             </motion.h2>
-            
-            <motion.h3 
+
+            <motion.h3
               variants={timelineItemVariants}
               className="text-4xl font-bold mb-8"
             >
               Passionate about <span className="text-[#44443a]">seamless</span> user experiences.
             </motion.h3>
-            
-            <motion.p 
+
+            <motion.p
               variants={timelineItemVariants}
               className="text-foreground/60 leading-relaxed mb-8 font-light"
             >
               With over two years of experience in frontend development, I specialize in creating visually appealing and user-friendly websites. My expertise extends to deploying and managing websites to ensure optimal performance, security, and scalability.
             </motion.p>
-            
+
             {/* Timeline */}
             <div className="space-y-4">
               {experiences.map((exp, i) => (
-                <motion.div 
-                  key={i} 
+                <motion.div
+                  key={i}
                   variants={timelineItemVariants}
                   whileHover={{ scale: 1.02, x: 5 }}
                   className="flex justify-between items-center p-4 rounded-2xl glass hover:bg-white/10 transition-all cursor-default"
@@ -103,7 +103,7 @@ const About = () => {
             variants={staggerContainer}
             className="grid grid-cols-2 gap-4 lg:mt-16"
           >
-            <SkillCard icon={<Code2 size={24} />} title="React.js" desc="Next.js, Redux, Context" variants={skillItemVariants} />
+            <SkillCard icon={<Code2 size={24} />} title="Next.js" desc="React.js, Redux, Context" variants={skillItemVariants} />
             <SkillCard icon={<Palette size={24} />} title="Tailwind CSS" desc="Aesthetic UI Design" variants={skillItemVariants} />
             <SkillCard icon={<Globe size={24} />} title="JavaScript" desc="Modern ES6+ Logic" variants={skillItemVariants} />
             <SkillCard icon={<Cpu size={24} />} title="Web Apps" desc="Scalable Architectures" variants={skillItemVariants} />
@@ -112,28 +112,28 @@ const About = () => {
           </motion.div>
         </div>
       </div>
-      
+
       {/* Decorative Blur elements */}
       <div className="absolute top-1/2 left-0 w-80 h-80 bg-[#44443a]/5 blur-[120px] rounded-full pointer-events-none"></div>
     </section>
   );
 };
 
-const SkillCard = ({ 
-  icon, 
-  title, 
-  desc, 
-  variants 
-}: { 
-  icon: React.ReactNode, 
-  title: string, 
+const SkillCard = ({
+  icon,
+  title,
+  desc,
+  variants
+}: {
+  icon: React.ReactNode,
+  title: string,
   desc: string,
   variants: any
 }) => (
-  <motion.div 
+  <motion.div
     variants={variants}
-    whileHover={{ 
-      scale: 1.05, 
+    whileHover={{
+      scale: 1.05,
       rotateY: 5,
       rotateX: -5,
       z: 50
