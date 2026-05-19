@@ -19,6 +19,7 @@ const Hero = () => {
   };
 
   // Spring slide-up item
+  // 
   const itemVariants = {
     hidden: { opacity: 0, y: 40 },
     visible: {
