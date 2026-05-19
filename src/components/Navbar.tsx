@@ -68,10 +68,10 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
               onClick={onOpenAssessment}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-white hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all duration-300 cursor-pointer text-xs font-bold tracking-widest uppercase relative"
+              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-white hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-xs font-bold tracking-widest uppercase relative"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping absolute left-3 top-1/2 -translate-y-1/2"></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-1"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping absolute left-3 top-1/2 -translate-y-1/2"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-red-600 ml-1"></span>
               <span>AI Audit</span>
             </motion.button>
           )}

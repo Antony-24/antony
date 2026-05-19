@@ -257,13 +257,6 @@ DETAILED ANSWERS SUMMARY:
         body: formData
       });
 
-      let data;
-      try {
-        data = await response.json();
-      } catch (err) {
-        throw new Error("Invalid response format.");
-      }
-
       if (response.ok) {
         setStage("success");
       } else {
