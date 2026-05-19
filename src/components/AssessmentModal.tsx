@@ -182,7 +182,7 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
     setStatusMsg("");
 
     // Classify score
-    let grade = "C (Critical Redesign)";
+    let grade = "C (Critical Redesign Needed)";
     let recommendation = "Your website is leaking visitors due to technical friction. We recommend a full modern Next.js overhaul.";
     if (score >= 80) {
       grade = "A (Elite Platform)";
@@ -194,10 +194,41 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
 
     try {
       const formData = new FormData();
-      formData.append("access_key", "3b9590e7-73a5-4881-99e7-a956c496bf2d");
-      formData.append("name", "Website Audit Self-Assessment Lead");
-      formData.append("email", email);
-      formData.append("subject", `New Assessment Score: ${score}/100 [Grade ${grade}] from ${email}`);
+      formData.append("email", email); // Client's email address where the autoresponse copy goes!
+      formData.append("subject", `Website Audit Scorecard: ${score}/100 [Grade ${grade}]`);
+      formData.append("_captcha", "false"); // Disables captcha for AJAX silent submission
+
+      // Custom plain-text confirmation receipt sent to the client instantly
+      formData.append("_autoresponder", `
+Thank you for using the Antony Francis AI Website Assessment Calculator!
+
+Here is your diagnostic website scorecard report:
+---------------------------------------------
+Your Calculated Score: ${score}/100
+Your Diagnostic Rating: ${grade}
+Recommendation: ${recommendation}
+
+DETAILED CATEGORY SUMMARY:
+1. Mobile Speed: ${selectedAnswers[1]}/10 pts
+2. Responsiveness: ${selectedAnswers[2]}/10 pts
+3. Conversion CTA: ${selectedAnswers[3]}/10 pts
+4. Google SEO: ${selectedAnswers[4]}/10 pts
+5. Analytics Tracker: ${selectedAnswers[5]}/10 pts
+6. Update Frequency: ${selectedAnswers[6]}/10 pts
+7. Security Protocol: ${selectedAnswers[7]}/10 pts
+8. Stack Platform: ${selectedAnswers[8]}/10 pts
+9. Lead Captures: ${selectedAnswers[9]}/10 pts
+10. UI Aesthetics: ${selectedAnswers[10]}/10 pts
+---------------------------------------------
+
+If you would like to review this scorecard and get a fully detailed custom optimization roadmap, book a free strategy call with me here:
+https://antony-nine.vercel.app/#contact
+
+Best regards,
+Antony Francis | React Developer
+      `);
+
+      // Full analytical log sent to the admin (555jinson@gmail.com)
       formData.append("message", `
 =============================================
 NEW WEBSITE AUDIT ASSESSMENT REPORT
@@ -221,21 +252,28 @@ DETAILED ANSWERS SUMMARY:
 =============================================
       `);
 
-      const response = await fetch("https://api.web3forms.com/submit", {
+      const response = await fetch("https://formsubmit.co/ajax/555jinson@gmail.com", {
         method: "POST",
         body: formData
       });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (err) {
+        throw new Error("Invalid response format.");
+      }
 
       if (response.ok) {
         setStage("success");
       } else {
         setStage("score");
-        setStatusMsg("Something went wrong. Please check your connection.");
+        setStatusMsg("Oops! Something went wrong. Please check your details and try again.");
       }
     } catch (err) {
       console.error(err);
       setStage("score");
-      setStatusMsg("Failed to connect. Please try again.");
+      setStatusMsg("Failed to connect. Please check your internet connection and try again.");
     }
   };
 
