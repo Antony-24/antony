@@ -12,12 +12,53 @@ const Contact = () => {
     service: "",
     message: ""
   });
+  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [statusMsg, setStatusMsg] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real app, you'd send this to your API route
-    console.log("Form submitted:", formState);
-    alert("Message sent successfully! (This is a demo submission)");
+    setStatus("loading");
+    setStatusMsg("");
+
+    try {
+      const formData = new FormData();
+      formData.append("name", formState.name);
+      formData.append("email", formState.email);
+      formData.append("number", formState.number);
+      formData.append("service", formState.service);
+      formData.append("message", formState.message);
+
+      const response = await fetch("/contact.php", {
+        method: "POST",
+        body: formData
+      });
+
+      let data;
+      try {
+        data = await response.json();
+      } catch (err) {
+        throw new Error("Invalid response from server.");
+      }
+
+      if (response.ok && data.success) {
+        setStatus("success");
+        setStatusMsg(data.message || "Message sent successfully!");
+        setFormState({
+          name: "",
+          email: "",
+          number: "",
+          service: "",
+          message: ""
+        });
+      } else {
+        setStatus("error");
+        setStatusMsg(data.message || "Oops! Something went wrong.");
+      }
+    } catch (error) {
+      console.error("Form submission error:", error);
+      setStatus("error");
+      setStatusMsg("Failed to connect to the mail server. Please try again later.");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -89,32 +130,49 @@ const Contact = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="name" className="text-xs uppercase tracking-widest font-bold text-foreground/40 ml-1">Your Name</label>
-                  <input type="text" id="name" required onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors" placeholder="Antony Francis" />
+                  <input type="text" id="name" required value={formState.name} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors text-white" placeholder="Antony Francis" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-xs uppercase tracking-widest font-bold text-foreground/40 ml-1">Email Address</label>
-                  <input type="email" id="email" required onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors" placeholder="antony@example.com" />
+                  <input type="email" id="email" required value={formState.email} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors text-white" placeholder="antony@example.com" />
                 </div>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="number" className="text-xs uppercase tracking-widest font-bold text-foreground/40 ml-1">Phone Number</label>
-                  <input type="tel" id="number" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors" placeholder="+91 8943367709" />
+                  <input type="tel" id="number" value={formState.number} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors text-white" placeholder="+91 8943367709" />
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="service" className="text-xs uppercase tracking-widest font-bold text-foreground/40 ml-1">Service Required</label>
-                  <input type="text" id="service" onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors" placeholder="Web Development" />
+                  <input type="text" id="service" value={formState.service} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors text-white" placeholder="Web Development" />
                 </div>
               </div>
 
               <div className="space-y-2">
                 <label htmlFor="message" className="text-xs uppercase tracking-widest font-bold text-foreground/40 ml-1">Requirements</label>
-                <textarea id="message" rows={4} required onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors" placeholder="Tell me about your project..."></textarea>
+                <textarea id="message" rows={4} required value={formState.message} onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors text-white" placeholder="Tell me about your project..."></textarea>
               </div>
 
-              <button type="submit" className="w-full py-4 rounded-xl bg-[#44443a] text-white font-bold flex items-center justify-center space-x-2 hover:bg-white hover:text-black hover:scale-[1.02] active:scale-[0.98] transition-all">
-                <span>Send Message</span>
+              {status !== "idle" && (
+                <div className={`p-4 rounded-xl text-sm ${
+                  status === "loading" ? "bg-white/5 text-white/80 border border-white/10 animate-pulse" :
+                  status === "success" ? "bg-[#44443a]/20 text-[#a1a18c] border border-[#44443a]/30" :
+                  "bg-red-500/10 text-red-400 border border-red-500/20"
+                }`}>
+                  {status === "loading" && (
+                    <div className="flex items-center space-x-2">
+                      <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                      <span>Sending message...</span>
+                    </div>
+                  )}
+                  {status === "success" && <span>{statusMsg}</span>}
+                  {status === "error" && <span>{statusMsg}</span>}
+                </div>
+              )}
+
+              <button type="submit" disabled={status === "loading"} className="w-full py-4 rounded-xl bg-[#44443a] text-white font-bold flex items-center justify-center space-x-2 hover:bg-white hover:text-black hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 disabled:scale-100 disabled:hover:bg-[#44443a] disabled:hover:text-white cursor-pointer disabled:cursor-not-allowed">
+                <span>{status === "loading" ? "Sending..." : "Send Message"}</span>
                 <Send size={18} />
               </button>
             </form>
