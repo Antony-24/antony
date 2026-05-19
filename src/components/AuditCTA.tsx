@@ -6,10 +6,15 @@ import { Activity, Video, CheckCircle2, ArrowRight } from "lucide-react";
 
 interface AuditCTAProps {
   setSelectedService: (service: string) => void;
+  onOpenAssessment?: () => void;
 }
 
-const AuditCTA = ({ setSelectedService }: AuditCTAProps) => {
+const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
   const handleServiceSelect = (serviceName: string) => {
+    if (serviceName === "Free Website Audit" && onOpenAssessment) {
+      onOpenAssessment();
+      return;
+    }
     setSelectedService(serviceName);
     const contactSection = document.getElementById("contact");
     if (contactSection) {

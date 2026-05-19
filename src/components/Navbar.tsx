@@ -5,7 +5,11 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import logo from '../assets/logo.png';
 
-const Navbar = () => {
+interface NavbarProps {
+  onOpenAssessment?: () => void;
+}
+
+const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -18,7 +22,6 @@ const Navbar = () => {
 
   const navLinks = [
     { name: "About", href: "#about" },
-    // { name: "Skills", href: "#skills" },
     { name: "Projects", href: "#projects" },
     { name: "Contact", href: "#contact" },
   ];
@@ -52,21 +55,36 @@ const Navbar = () => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
-              className="text-sm font-medium text-white"
+              className="text-sm font-medium text-white hover:text-[#8f8f7c] transition-colors"
             >
               {link.name}
             </motion.a>
           ))}
         </div>
 
-        <motion.a
-          href="#contact"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="px-6 py-2 rounded-full bg-[#44443a] text-white font-semibold text-sm hover:bg-white hover:text-black transition-all"
-        >
-          Hire Me
-        </motion.a>
+        <div className="flex items-center space-x-4">
+          {onOpenAssessment && (
+            <motion.button
+              onClick={onOpenAssessment}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center space-x-2 px-4 py-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 text-white hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all duration-300 cursor-pointer text-xs font-bold tracking-widest uppercase relative"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping absolute left-3 top-1/2 -translate-y-1/2"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 ml-1"></span>
+              <span>AI Audit</span>
+            </motion.button>
+          )}
+
+          <motion.a
+            href="#contact"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="px-6 py-2 rounded-full bg-[#44443a] text-white font-semibold text-sm hover:bg-white hover:text-black transition-all"
+          >
+            Hire Me
+          </motion.a>
+        </div>
       </div>
     </nav>
   );
