@@ -103,7 +103,7 @@ const Hero = () => {
         >
           <motion.div
             variants={floatVariants}
-            animate="animate"
+            animate=""
             className="relative z-10 rounded-lg overflow-hidden border-2 border-[#44443a]/40 mx-auto shadow-2xl shadow-[#44443a]/20"
           >
             <Image
