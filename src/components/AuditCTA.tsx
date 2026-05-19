@@ -42,26 +42,14 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
     }
   };
 
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   return (
     <section id="free-session" className="section-padding bg-gradient-to-b from-background to-card/10 font-poppins relative overflow-hidden">
       <div className="container mx-auto relative z-10">
         
         {/* Section Header */}
         <motion.div
-          initial={isMobile ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
-          whileInView={isMobile ? undefined : { opacity: 1, y: 0 }}
-          viewport={isMobile ? undefined : { once: true }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 85, damping: 15 }}
           className="text-center max-w-2xl mx-auto mb-16"
         >
@@ -78,9 +66,8 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
 
         {/* Dynamic Cards Grid */}
         <motion.div
-          initial={isMobile ? "visible" : "hidden"}
-          whileInView={isMobile ? undefined : "visible"}
-          viewport={isMobile ? undefined : { once: true, amount: 0.15 }}
+          initial="hidden"
+          animate="visible"
           variants={containerVariants}
           className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto"
         >
