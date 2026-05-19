@@ -9,15 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0a0a0a",
-        foreground: "#ededed",
+        background: "#000000",
+        foreground: "#ffffff",
         accent: {
-          DEFAULT: "#00d1ff",
-          dark: "#00a3cc",
+          DEFAULT: "#44443a",
+          dark: "#33332b",
         },
         card: {
-          DEFAULT: "#121212",
-          hover: "#1a1a1a",
+          DEFAULT: "#000000",
+          hover: "#0a0a0a",
         }
       },
       fontFamily: {

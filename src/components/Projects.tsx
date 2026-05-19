@@ -43,7 +43,7 @@ const ProjectCard = ({ title, description, images, tags, link, github }: Project
             </h3>
             <div className="flex flex-wrap gap-1">
               {tags.map(tag => (
-                <span key={tag} className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-white/5 text-foreground/50">
+                <span key={tag} className="text-[9px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-[#44443a]/10 border border-[#44443a]/30 text-white/70">
                   {tag}
                 </span>
               ))}
@@ -51,12 +51,12 @@ const ProjectCard = ({ title, description, images, tags, link, github }: Project
           </div>
           <div className="flex space-x-2 ml-3 shrink-0">
             {github && (
-              <a href={github} className="p-2 rounded-full bg-white/5 hover:bg-accent hover:text-background transition-all">
+              <a href={github} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-[#44443a] hover:text-white transition-all">
                 <Github size={15} />
               </a>
             )}
             {link && (
-              <a href={link} className="p-2 rounded-full bg-white/5 hover:bg-accent hover:text-background transition-all">
+              <a href={link} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-white/5 hover:bg-[#44443a] hover:text-white transition-all">
                 <ExternalLink size={15} />
               </a>
             )}
@@ -72,27 +72,84 @@ const ProjectCard = ({ title, description, images, tags, link, github }: Project
 const Projects = () => {
   const projects: ProjectProps[] = [
     {
-      title: "Tourismooze",
-      description: "A comprehensive tourism web application featuring diverse packages, currency conversion, and international payment acceptance.",
-      images: ["/images/tourismooze_1.png", "/images/tourismooze_2.png"],
-      tags: ["React", "Next.js", "Tailwind", "API Integration"],
-      link: "#",
-      github: "#",
+      title: "Hilltop Granite",
+      description: "Premium marble and granite distributor website featuring an elegant, rich portfolio of stone designs, slabs, and countertop collections.",
+      images: ["/images/hilltop.png"],
+      tags: ["Next.js", "Tailwind CSS", "UI/UX", "Product Showcase"],
+      link: "https://www.hilltopgranite.com/",
+      github: "https://github.com/Antony-24",
     },
     {
-      title: "Mental Health Portal",
-      description: "A professional portfolio for a psychiatrist featuring a clean design, service showcase, and appointment booking integration.",
-      images: ["/images/psychiatrist.png"],
-      tags: ["React", "UI/UX", "Responsive"],
-      link: "#",
+      title: "Global Business Tech",
+      description: "Enterprise IT solutions and professional consultancy platform showcasing services in hardware, network security, and cloud infrastructure.",
+      images: ["/images/globalbusinesstech.png"],
+      tags: ["React", "Next.js", "Corporate", "Services Portal"],
+      link: "https://globalbusinesstech.in/",
+      github: "https://github.com/Antony-24",
     },
     {
-      title: "Analytics Dashboard",
-      description: "High-performance data visualization platform with real-time updates and interactive charts for business intelligence.",
-      images: ["/images/dashboard.png"],
-      tags: ["Next.js", "Redux", "DataViz"],
-      link: "#",
-      github: "#",
+      title: "Ikonix Perfumer",
+      description: "High-end luxury fragrance store and e-commerce experience designed to showcase premium scent catalogs, notes, and collections.",
+      images: ["/images/ikonix.png"],
+      tags: ["E-Commerce", "React", "Sleek Aesthetics", "Product Catalog"],
+      link: "https://ikonixperfumer.com/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "News Potent",
+      description: "Dynamic global news and media portal featuring real-time feed updates, categorized articles, and fully responsive layouts.",
+      images: ["/images/newspotent.png"],
+      tags: ["Vercel", "React", "News Feed", "API Integration"],
+      link: "https://newspotent.vercel.app/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "IDA SDFC Kerala",
+      description: "State-level professional dental council platform providing member registration, updates, directories, and secure dental resource sharing.",
+      images: ["/images/ida_sdfc.png"],
+      tags: ["Next.js", "Member Directory", "Professional Portal", "Security"],
+      link: "https://ida-sdfckerala.com/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Packrack",
+      description: "B2B and B2C heavy-duty industrial shelving, storage racking, and warehouse solutions website featuring catalog management.",
+      images: ["/images/packrack.png"],
+      tags: ["Tailwind CSS", "React", "Industrial Design", "Catalog"],
+      link: "https://packrack.in/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Megaa Opes",
+      description: "Global recruitment and human resources portal facilitating international talent sourcing, job boards, and employer services.",
+      images: ["/images/megaaopes.png"],
+      tags: ["Recruitment", "Job Board", "React", "User Experience"],
+      link: "https://megaaopes.com/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "The Fysit",
+      description: "Modern health and wellness portal dedicated to physical therapy, fitness consulting, and online treatment scheduling.",
+      images: ["/images/thefysit.png"],
+      tags: ["Next.js", "Wellness", "Booking Integration", "Responsive"],
+      link: "https://thefysit.com/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Virra",
+      description: "Creative design studio and digital branding agency showcase page featuring high-concept animations and immersive experiences.",
+      images: ["/images/virra.png"],
+      tags: ["Agency Showcase", "Framer Motion", "Vibrant UI", "Next.js"],
+      link: "https://virra.in/",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Winmax India",
+      description: "Advanced engineering systems and industrial equipment supplier portal presenting detailed product metrics and sales inquiries.",
+      images: ["/images/winmax.png"],
+      tags: ["Next.js", "Engineering Portal", "B2B E-Commerce", "Contact Forms"],
+      link: "https://winmaxindia.com/",
+      github: "https://github.com/Antony-24",
     },
   ];
 
@@ -117,6 +174,7 @@ const Projects = () => {
 
   // Reset position when breakpoint switches
   const prevVisible = useRef(visible);
+  const lastClick = useRef(0);
   useEffect(() => {
     if (prevVisible.current !== visible) {
       prevVisible.current = visible;
@@ -136,6 +194,9 @@ const Projects = () => {
   }, [jumping]);
 
   const paginate = useCallback((dir: number) => {
+    const now = Date.now();
+    if (now - lastClick.current < 450) return;
+    lastClick.current = now;
     setCurrent(c => c + dir);
   }, []);
 
@@ -150,27 +211,28 @@ const Projects = () => {
   const handleTransitionEnd = () => {
     setCurrent(c => {
       if (c >= N * 2) { setJumping(true); return c - N; }
-      if (c < N)      { setJumping(true); return c + N; }
+      if (c < N) { setJumping(true); return c + N; }
+      if (c < 0 || c >= cloned.length) { setJumping(true); return N; }
       return c;
     });
   };
 
   // CSS % calculation
-  const trackWidth  = (cloned.length / visible) * 100;
-  const cardWidth   = 100 / cloned.length;
-  const translateX  = -(current * cardWidth);
+  const trackWidth = (cloned.length / visible) * 100;
+  const cardWidth = 100 / cloned.length;
+  const translateX = -(current * cardWidth);
 
   const activeIndex = current % N;
 
   return (
-    <section id="projects" className="section-padding bg-black/50 font-poppins">
+    <section id="projects" className="section-padding bg-background font-poppins">
       <div className="container mx-auto">
 
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-end mb-16">
           <div>
-            <h2 className="text-accent font-medium mb-4 tracking-widest uppercase text-sm">Portfolio</h2>
-            <h3 className="text-4xl md:text-5xl font-bold">Featured Projects</h3>
+            <h2 className="text-white/60 font-medium mb-4 tracking-widest uppercase text-sm border-b border-[#44443a]/50 pb-2 inline-block">Portfolio</h2>
+            <h3 className="text-4xl md:text-5xl font-bold">Feathers In My Cap</h3>
           </div>
           <p className="text-foreground/40 max-w-xs mt-4 md:mt-0">
             A selection of my recent works where design meets functionality.
@@ -214,7 +276,7 @@ const Projects = () => {
             className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-5 z-10
                        w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
                        bg-card border border-white/10 text-foreground/70
-                       hover:bg-accent hover:text-background hover:border-accent
+                       hover:bg-[#44443a] hover:text-white hover:border-[#44443a]
                        transition-all duration-300 shadow-xl"
           >
             <ChevronLeft size={20} />
@@ -227,7 +289,7 @@ const Projects = () => {
             className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-5 z-10
                        w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center
                        bg-card border border-white/10 text-foreground/70
-                       hover:bg-accent hover:text-background hover:border-accent
+                       hover:bg-[#44443a] hover:text-white hover:border-[#44443a]
                        transition-all duration-300 shadow-xl"
           >
             <ChevronRight size={20} />
@@ -242,11 +304,10 @@ const Projects = () => {
                 key={i}
                 onClick={() => setCurrent(N + i)}
                 aria-label={`Go to project ${i + 1}`}
-                className={`transition-all duration-300 rounded-full ${
-                  i === activeIndex
-                    ? "w-8 h-2 bg-accent"
+                className={`transition-all duration-300 rounded-full ${i === activeIndex
+                    ? "w-8 h-2 bg-white"
                     : "w-2 h-2 bg-white/20 hover:bg-white/40"
-                }`}
+                  }`}
               />
             ))}
           </div>

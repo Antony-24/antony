@@ -21,8 +21,8 @@ const About = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-accent font-medium mb-4 tracking-widest uppercase text-sm">About Me</h2>
-            <h3 className="text-4xl font-bold mb-8">Passionate about <span className="text-gradient">seamless</span> user experiences.</h3>
+            <h2 className="text-white/60 font-medium mb-4 tracking-widest uppercase text-sm border-b border-[#44443a]/50 pb-2 inline-block">About Me</h2>
+            <h3 className="text-4xl font-bold mb-8">Passionate about <span className="text-[#44443a]">seamless</span> user experiences.</h3>
             <p className="text-foreground/60 leading-relaxed mb-8">
               With over two years of experience in frontend development, I specialize in creating visually appealing and user-friendly websites. My expertise extends to deploying and managing websites to ensure optimal performance, security, and scalability.
             </p>
@@ -34,7 +34,7 @@ const About = () => {
                     <h4 className="font-bold">{exp.role}</h4>
                     <p className="text-sm text-foreground/40">{exp.company}</p>
                   </div>
-                  <span className="text-xs font-bold text-accent px-3 py-1 rounded-full bg-accent/10">{exp.period}</span>
+                  <span className="text-xs font-bold text-white px-3 py-1 rounded-full bg-[#44443a]">{exp.period}</span>
                 </div>
               ))}
             </div>
@@ -60,10 +60,10 @@ const About = () => {
 };
 
 const SkillCard = ({ icon, title, desc }: { icon: React.ReactNode, title: string, desc: string }) => (
-  <div className="p-6 rounded-3xl glass hover:bg-accent hover:text-background transition-all group">
-    <div className="mb-4 text-accent group-hover:text-background transition-colors">{icon}</div>
+  <div className="p-6 rounded-3xl glass hover:bg-[#44443a] hover:text-white transition-all group">
+    <div className="mb-4 text-white/80 group-hover:text-white transition-colors">{icon}</div>
     <h4 className="font-bold mb-2">{title}</h4>
-    <p className="text-xs text-foreground/40 group-hover:text-background/70 transition-colors leading-relaxed">{desc}</p>
+    <p className="text-xs text-foreground/50 group-hover:text-white/80 transition-colors leading-relaxed">{desc}</p>
   </div>
 );
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Mail, Phone, MapPin, Send, Github, Linkedin, Twitter } from "lucide-react";
+import { Mail, Phone, MapPin, Send, Github, Linkedin, Instagram, Facebook } from "lucide-react";
 
 const Contact = () => {
   const [formState, setFormState] = useState({
@@ -36,12 +36,12 @@ const Contact = () => {
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
           >
-            <h2 className="text-accent font-medium mb-4 tracking-widest uppercase text-sm">Contact</h2>
-            <h3 className="text-4xl md:text-5xl font-bold mb-8">Let's build something <span className="text-gradient">extraordinary</span> together.</h3>
+            <h2 className="text-white/60 font-medium mb-4 tracking-widest uppercase text-sm border-b border-[#44443a]/50 pb-2 inline-block">Contact</h2>
+            <h3 className="text-4xl md:text-5xl font-bold mb-8">Let's build something <span className="text-[#44443a]">extraordinary</span> together.</h3>
             
             <div className="space-y-6 mb-12">
               <div className="flex items-center space-x-4 group">
-                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center group-hover:bg-accent group-hover:text-background transition-all">
+                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center group-hover:bg-[#44443a] group-hover:text-white transition-all">
                   <Mail size={20} />
                 </div>
                 <div>
@@ -51,7 +51,7 @@ const Contact = () => {
               </div>
 
               <div className="flex items-center space-x-4 group">
-                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center group-hover:bg-accent group-hover:text-background transition-all">
+                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center group-hover:bg-[#44443a] group-hover:text-white transition-all">
                   <Phone size={20} />
                 </div>
                 <div>
@@ -61,7 +61,7 @@ const Contact = () => {
               </div>
 
               <div className="flex items-center space-x-4 group">
-                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center group-hover:bg-accent group-hover:text-background transition-all">
+                <div className="w-12 h-12 rounded-2xl glass flex items-center justify-center group-hover:bg-[#44443a] group-hover:text-white transition-all">
                   <MapPin size={20} />
                 </div>
                 <div>
@@ -71,10 +71,11 @@ const Contact = () => {
               </div>
             </div>
 
-            <div className="flex space-x-6">
-              <a href="#" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-accent hover:text-background transition-all"><Github size={20} /></a>
-              <a href="#" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-accent hover:text-background transition-all"><Linkedin size={20} /></a>
-              <a href="#" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-accent hover:text-background transition-all"><Twitter size={20} /></a>
+            <div className="flex space-x-4">
+              <a href="https://github.com/Antony-24" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-[#44443a] hover:text-white transition-all"><Github size={20} /></a>
+              <a href="https://www.linkedin.com/in/antony-francis-8318a2225/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-[#44443a] hover:text-white transition-all"><Linkedin size={20} /></a>
+              <a href="https://www.instagram.com/antony__jinson/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-[#44443a] hover:text-white transition-all"><Instagram size={20} /></a>
+              <a href="https://www.facebook.com/antony.jinson.2025/" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-lg glass flex items-center justify-center hover:bg-[#44443a] hover:text-white transition-all"><Facebook size={20} /></a>
             </div>
           </motion.div>
 
@@ -112,7 +113,7 @@ const Contact = () => {
                 <textarea id="message" rows={4} required onChange={handleChange} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-accent transition-colors" placeholder="Tell me about your project..."></textarea>
               </div>
 
-              <button type="submit" className="w-full py-4 rounded-xl bg-accent text-background font-bold flex items-center justify-center space-x-2 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <button type="submit" className="w-full py-4 rounded-xl bg-[#44443a] text-white font-bold flex items-center justify-center space-x-2 hover:bg-white hover:text-black hover:scale-[1.02] active:scale-[0.98] transition-all">
                 <span>Send Message</span>
                 <Send size={18} />
               </button>
