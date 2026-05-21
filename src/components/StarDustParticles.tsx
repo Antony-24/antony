@@ -69,7 +69,7 @@ const StarDustParticles: React.FC = () => {
         orbitAngle: -0.18, // Tilted orbital plane in radians
         theta: Math.random() * Math.PI * 2, // Starting angle
         speed: 0.0003, // Slow orbital rotation
-        size: 5.5, // Planet size
+        size: 15.0, // Planet size (scaled up for high-fidelity space immersion)
         color: "#e28254", // Orange gas giant
         glowColor: "rgba(226, 130, 84, 0.4)",
         hasRings: true,
@@ -86,7 +86,7 @@ const StarDustParticles: React.FC = () => {
         orbitAngle: 0.22, // Opposing tilted orbital plane
         theta: Math.random() * Math.PI * 2,
         speed: 0.0002,
-        size: 4.8, // Slightly smaller ice giant
+        size: 11.0, // Slightly smaller ice giant
         color: "#64b4dc", // Azure blue planet
         glowColor: "rgba(100, 180, 220, 0.45)",
         hasRings: false,
