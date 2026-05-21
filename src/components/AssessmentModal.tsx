@@ -208,15 +208,73 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
       });
 
       if (response.ok) {
-        setStage("success");
+        const data = await response.json();
+        
+        if (data.method === "client_fallback_required") {
+          // SMTP not configured on server, fallback to client-side Web3Forms submission
+          const answersText = `
+1. Mobile Speed: ${selectedAnswers[1] ?? 0} / 10 pts
+2. Responsiveness: ${selectedAnswers[2] ?? 0} / 10 pts
+3. Conversion CTA: ${selectedAnswers[3] ?? 0} / 10 pts
+4. Google SEO: ${selectedAnswers[4] ?? 0} / 10 pts
+5. Analytics Tracker: ${selectedAnswers[5] ?? 0} / 10 pts
+6. Update Frequency: ${selectedAnswers[6] ?? 0} / 10 pts
+7. Security Protocol: ${selectedAnswers[7] ?? 0} / 10 pts
+8. Stack Platform: ${selectedAnswers[8] ?? 0} / 10 pts
+9. Lead Captures: ${selectedAnswers[9] ?? 0} / 10 pts
+10. UI Aesthetics: ${selectedAnswers[10] ?? 0} / 10 pts
+          `.trim();
+
+          const formData = new FormData();
+          formData.append("access_key", "3b9590e7-73a5-4881-99e7-a956c496bf2d");
+          formData.append("name", "Website Self-Assessment Lead");
+          formData.append("email", email);
+          formData.append("from_name", "Antony Portfolio AI Audit");
+          formData.append("subject", `New Assessment Lead: ${score}/100 [Grade ${grade}]`);
+          formData.append("message", `
+=============================================
+NEW WEBSITE AUDIT ASSESSMENT REPORT
+=============================================
+Lead Email: ${email}
+Calculated Score: ${score}/100
+Rating Grade: ${grade}
+Recommendation: ${recommendation}
+
+DETAILED ANSWERS SUMMARY:
+${answersText}
+=============================================
+          `.trim());
+
+          const clientResponse = await fetch("https://api.web3forms.com/submit", {
+            method: "POST",
+            body: formData
+          });
+
+          let clientData;
+          try {
+            clientData = await clientResponse.json();
+          } catch (err) {
+            throw new Error("Invalid response from Web3Forms server.");
+          }
+
+          if (clientResponse.ok && clientData.success) {
+            setStage("success");
+          } else {
+            setStage("score");
+            setStatusMsg(clientData.message || "Oops! Web3Forms submission failed.");
+          }
+        } else {
+          // SMTP sent successfully from backend
+          setStage("success");
+        }
       } else {
         setStage("score");
         setStatusMsg("Oops! Something went wrong. Please check your details and try again.");
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
       setStage("score");
-      setStatusMsg("Failed to connect. Please check your internet connection and try again.");
+      setStatusMsg(err.message || "Failed to connect. Please check your internet connection and try again.");
     }
   };
 

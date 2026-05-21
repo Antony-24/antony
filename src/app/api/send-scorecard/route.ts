@@ -138,38 +138,10 @@ export async function POST(req: Request) {
 
       return NextResponse.json({ success: true, method: "smtp" });
     } else {
-      // Fallback: Post to Web3Forms using the verified Access Key
-      const web3Data = new FormData();
-      web3Data.append("access_key", "3b9590e7-73a5-4881-99e7-a956c496bf2d");
-      web3Data.append("name", "Website Self-Assessment Lead");
-      web3Data.append("email", email);
-      web3Data.append("subject", `New Assessment Lead: ${score}/100 [Grade ${grade}]`);
-      web3Data.append("message", `
-=============================================
-NEW WEBSITE AUDIT ASSESSMENT REPORT
-=============================================
-Lead Email: ${email}
-Calculated Score: ${score}/100
-Rating Grade: ${grade}
-Recommendation: ${recommendation}
-
-DETAILED ANSWERS SUMMARY:
-${answersText}
-=============================================
-[Mailer Alert] Please configure SMTP_USER & SMTP_PASS in .env to enable instant client copies!
-      `);
-
-      const web3Res = await fetch("https://api.web3forms.com/submit", {
-        method: "POST",
-        body: web3Data,
-      });
-
-      if (!web3Res.ok) {
-        throw new Error("Web3Forms fallback submission failed.");
-      }
-
-      console.warn("[Mailer Warning] SMTP is not configured in environment variables. Falling back cleanly to Web3Forms.");
-      return NextResponse.json({ success: true, method: "web3forms_fallback" });
+      // SMTP is not configured, return a status instructing the client to submit
+      // directly to Web3Forms from the browser to avoid server IP restrictions.
+      console.warn("[Mailer Warning] SMTP is not configured. Returning client fallback requirement status.");
+      return NextResponse.json({ success: true, method: "client_fallback_required" });
     }
   } catch (error: any) {
     console.error("Scorecard submission handler error:", error);
