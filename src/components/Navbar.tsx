@@ -69,9 +69,9 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
               animate={{ opacity: 1, scale: 1 }}
               className="flex items-center space-x-1.5 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/20 bg-white/5 text-white hover:bg-white hover:text-black hover:border-white transition-all duration-300 cursor-pointer text-[10px] md:text-xs font-bold tracking-widest uppercase relative"
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-red-600 animate-ping absolute left-2 md:left-3 top-1/2 -translate-y-1/2"></span>
-              <span className="w-1.5 h-1.5 rounded-full bg-red-600 ml-0.5 md:ml-1"></span>
-              <span>AI Audit</span>
+              <span className="w-2 h-2 rounded-full bg-red-600 animate-ping absolute left-2 md:left-3 top-1/2 -translate-y-1/2"></span>
+              <span className="w-2 h-2 rounded-full bg-red-600 ml-0.5 md:ml-1"></span>
+              <span>AF Audit</span>
             </motion.button>
           )}
 

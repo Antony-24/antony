@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion"; 
+import { motion } from "framer-motion";
 import { Activity, Video, CheckCircle2, ArrowRight } from "lucide-react";
 
 interface AuditCTAProps {
@@ -45,7 +45,7 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
   return (
     <section id="free-session" className="section-padding bg-gradient-to-b from-background to-card/10 font-poppins relative overflow-hidden">
       <div className="container mx-auto relative z-10">
-        
+
         {/* Section Header */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -88,7 +88,7 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
               <p className="text-foreground/50 text-sm mb-8 font-light leading-relaxed">
                 Struggling with slow loading times or low sales conversions? Let me run an in-depth 10-point technical audit on your site.
               </p>
-              
+
               <ul className="space-y-4 mb-10">
                 <li className="flex items-center space-x-3 text-sm text-foreground/75 font-light">
                   <CheckCircle2 size={16} className="text-[#44443a]" />
@@ -105,8 +105,8 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
               </ul>
             </div>
 
-            <button 
-              className="w-full py-4 rounded-xl border border-[#44443a]/50 text-white font-bold flex items-center justify-center space-x-2 bg-[#44443a]/10 hover:bg-[#44443a] transition-all duration-300 shadow-md group-hover:shadow-[#44443a]/25 group-hover:border-[#44443a]"
+            <button
+              className="w-full py-4 rounded-xl border border-green-600 text-white font-bold flex items-center justify-center space-x-2 bg-[#44443a]/10 hover:bg-[#44443a] transition-all duration-300 shadow-md group-hover:shadow-[#44443a]/25 group-hover:border-[#44443a]"
             >
               <span>Claim Free Audit</span>
               <ArrowRight size={16} className="transform group-hover:translate-x-1 transition-transform" />
@@ -130,7 +130,7 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
               <p className="text-foreground/50 text-sm mb-8 font-light leading-relaxed">
                 Got a custom project or custom web app idea? Let's hop on a 30-minute video session to scope your design and tech requirements.
               </p>
-              
+
               <ul className="space-y-4 mb-10">
                 <li className="flex items-center space-x-3 text-sm text-foreground/75 font-light">
                   <CheckCircle2 size={16} className="text-[#44443a]" />
@@ -147,7 +147,7 @@ const AuditCTA = ({ setSelectedService, onOpenAssessment }: AuditCTAProps) => {
               </ul>
             </div>
 
-            <button 
+            <button
               className="w-full py-4 rounded-xl border border-[#44443a]/50 text-white font-bold flex items-center justify-center space-x-2 bg-[#44443a]/10 hover:bg-[#44443a] transition-all duration-300 shadow-md group-hover:shadow-[#44443a]/25 group-hover:border-[#44443a]"
             >
               <span>Book Strategy Call</span>
