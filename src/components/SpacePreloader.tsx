@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SpacePreloader: React.FC = () => {
@@ -29,7 +29,7 @@ const SpacePreloader: React.FC = () => {
       osc.start();
       osc.stop(audioCtx.currentTime + duration);
     } catch (e) {
-      console.warn("Audio Context blocked or not supported", e);
+      // Audio context inactive
     }
   };
 
@@ -67,7 +67,7 @@ const SpacePreloader: React.FC = () => {
   const handleStartLaunch = () => {
     setIsInitialized(true);
     speakText("Cosmic engine telemetry initialized. Commencing launch sequence.");
-    setStatusText("TELETROMY LINK: ACTIVE");
+    setStatusText("TELEMETRY LINK: ACTIVE");
     
     // Begin countdown after introduction speech completes
     setTimeout(() => {
@@ -126,18 +126,18 @@ const SpacePreloader: React.FC = () => {
           }}
         >
           {/* Cybernetic Tech Grid Fills */}
-          <div className="absolute inset-0 bg-[radial-gradient(#1e1b4b_1px,transparent_1px)] [background-size:24px_24px] opacity-10 pointer-events-none" />
+          <div className="absolute inset-0 bg-[radial-gradient(#8f8f7c_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none" />
 
           <div className="w-full max-w-lg flex flex-col items-center relative z-10">
             {/* Spinning Radar Vectors */}
             <div className="relative w-44 h-44 md:w-56 md:h-56 mb-8 flex items-center justify-center">
               <motion.div
-                className="absolute inset-0 rounded-full border border-white/5 border-t-[#e28254]/40"
+                className="absolute inset-0 rounded-full border border-white/5 border-t-[#8f8f7c]/40"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
               />
               <motion.div
-                className="absolute w-36 h-36 rounded-full border border-white/5 border-b-[#64b4dc]/30"
+                className="absolute w-36 h-36 rounded-full border border-white/5 border-b-[#44443a]/50"
                 animate={{ rotate: -360 }}
                 transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
               />
@@ -154,12 +154,12 @@ const SpacePreloader: React.FC = () => {
                     key={count}
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    className="text-4xl md:text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-[#e28254] to-[#64b4dc]"
+                    className="text-4xl md:text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8f8f7c]"
                   >
                     T - {count}
                   </motion.div>
                 ) : (
-                  <div className="text-2xl font-bold font-mono tracking-widest text-[#e28254] animate-pulse">
+                  <div className="text-2xl font-bold font-mono tracking-widest text-[#8f8f7c] animate-pulse">
                     COSMOS
                   </div>
                 )}
@@ -168,21 +168,21 @@ const SpacePreloader: React.FC = () => {
 
             {/* Launch Status Dashboard */}
             <div className="w-full bg-white/5 border border-white/10 rounded-xl p-4 md:p-6 mb-8 text-center font-mono">
-              <div className="text-[10px] md:text-xs text-white/50 mb-1 uppercase tracking-widest">
+              <div className="text-[10px] md:text-xs text-white/40 mb-1 uppercase tracking-widest">
                 Mission Guidance Uplink
               </div>
-              <div className="text-xs md:text-sm font-semibold tracking-wide text-[#64b4dc] transition-all">
+              <div className="text-xs md:text-sm font-semibold tracking-wide text-white transition-all">
                 {statusText}
               </div>
               
               {/* Telemetry Faux Glitch Lines */}
               <div className="flex justify-center space-x-1 mt-4">
-                <span className={`w-2 h-1.5 rounded-sm ${isInitialized ? "bg-[#10b981]" : "bg-[#ef4444] animate-pulse"}`}></span>
-                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 4 ? "bg-[#10b981]" : "bg-white/10"}`}></span>
-                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 3 ? "bg-[#10b981]" : "bg-white/10"}`}></span>
-                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 2 ? "bg-[#10b981]" : "bg-white/10"}`}></span>
-                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 1 ? "bg-[#10b981]" : "bg-white/10"}`}></span>
-                <span className={`w-2 h-1.5 rounded-sm ${count === 0 ? "bg-[#10b981]" : "bg-white/10"}`}></span>
+                <span className={`w-2 h-1.5 rounded-sm ${isInitialized ? "bg-white" : "bg-white/10 animate-pulse"}`}></span>
+                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 4 ? "bg-white" : "bg-white/10"}`}></span>
+                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 3 ? "bg-white" : "bg-white/10"}`}></span>
+                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 2 ? "bg-white" : "bg-white/10"}`}></span>
+                <span className={`w-2 h-1.5 rounded-sm ${count !== null && count <= 1 ? "bg-white" : "bg-white/10"}`}></span>
+                <span className={`w-2 h-1.5 rounded-sm ${count === 0 ? "bg-white" : "bg-white/10"}`}></span>
               </div>
             </div>
 
@@ -192,7 +192,7 @@ const SpacePreloader: React.FC = () => {
                 onClick={handleStartLaunch}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-8 py-3 rounded-full bg-gradient-to-r from-[#e28254] to-[#44443a] text-white font-bold text-xs md:text-sm tracking-widest uppercase shadow-lg shadow-[#e28254]/20 border border-white/15 cursor-pointer transition-all duration-300"
+                className="px-8 py-3 rounded-full bg-[#44443a] text-white font-bold text-xs md:text-sm tracking-widest uppercase shadow-lg shadow-black/40 border border-white/10 cursor-pointer hover:bg-white hover:text-black hover:border-white transition-all duration-300"
               >
                 Commence Mission Launch
               </motion.button>
@@ -214,7 +214,7 @@ const SpacePreloader: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-xs text-[#10b981] tracking-widest uppercase font-mono font-bold"
+                className="text-xs text-white tracking-widest uppercase font-mono font-bold"
               >
                 Ignition engaged! Welcome aboard.
               </motion.div>
