@@ -49,7 +49,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
     setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = 1.0;
-      utterance.rate = 1.0; // Standard crisp speech speed
+      utterance.rate = 0.98; // Natural, crisp cockpit speaking speed
       utterance.pitch = 0.85; // Deep radio broadcast pitch
       
       // Look for standard high-quality English synthesizers
@@ -73,10 +73,10 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
     speakText("T-minus five");
     setStatusText("TELEMETRY LINK: ACTIVE");
     
-    // Begin countdown after introduction speech completes
+    // Begin countdown after T-minus five intro phrase
     setTimeout(() => {
       setCount(5);
-    }, 1200);
+    }, 1100);
   };
 
   useEffect(() => {
@@ -88,7 +88,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
       3: "three",
       2: "two",
       1: "one",
-      0: "zero",
+      0: "zero. Booster ignition, and lift off to AF Convertix!",
     };
 
     const statusTexts: Record<number, string> = {
@@ -97,7 +97,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
       3: "LAUNCH STATE: T-3 (REACTOR IGNITION)",
       2: "LAUNCH STATE: T-2 (SUPPRESSION ENGAGED)",
       1: "LAUNCH STATE: T-1 (MAIN ENGINE READY)",
-      0: "MISSION DEPLOYED: SYSTEMS NOMINAL",
+      0: "LIFT OFF ENGAGED: PILOT IN COCKPIT",
     };
 
     speakText(phrases[count]);
@@ -109,10 +109,10 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
         onLaunchComplete();
       }
 
-      // Slide up/fade out the preloader after a brief pause
+      // Slide up/fade out the preloader after a brief pause to allow the lift off announcement to play
       const timeout = setTimeout(() => {
         setIsVisible(false);
-      }, 1500);
+      }, 4200);
       return () => clearTimeout(timeout);
     }
 
@@ -165,7 +165,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-4xl md:text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8f8f7c]"
                   >
-                    T - {count}
+                    {count === 5 ? "T - 5" : count}
                   </motion.div>
                 ) : (
                   <div className="text-2xl font-bold font-mono tracking-widest text-[#8f8f7c] animate-pulse">
@@ -223,9 +223,9 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-xs text-white tracking-widest uppercase font-mono font-bold"
+                className="text-xs text-[#8f8f7c] tracking-widest uppercase font-mono font-bold animate-pulse"
               >
-                Ignition engaged! Welcome aboard.
+                LIFT OFF!
               </motion.div>
             )}
           </div>
