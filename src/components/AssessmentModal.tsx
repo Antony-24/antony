@@ -122,6 +122,7 @@ const QUESTIONS: Question[] = [
 const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<number, number>>({});
+  const [selectedIndices, setSelectedIndices] = useState<Record<number, number>>({});
   const [stage, setStage] = useState<"intro" | "quiz" | "score" | "submitting" | "success">("intro");
   
   const [score, setScore] = useState(0);
@@ -137,6 +138,7 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
       // Reset state on close
       setCurrentIdx(0);
       setSelectedAnswers({});
+      setSelectedIndices({});
       setStage("intro");
       setEmail("");
       setStatusMsg("");
@@ -151,9 +153,10 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
   const currentQuestion = QUESTIONS[currentIdx];
   const progressPercent = ((currentIdx + 1) / QUESTIONS.length) * 100;
 
-  const handleSelectAnswer = (points: number) => {
+  const handleSelectAnswer = (points: number, choiceIndex: number) => {
     const newAnswers = { ...selectedAnswers, [currentQuestion.id]: points };
     setSelectedAnswers(newAnswers);
+    setSelectedIndices({ ...selectedIndices, [currentQuestion.id]: choiceIndex });
 
     // Auto advance after short delay for next-level smooth flow
     setTimeout(() => {
@@ -411,14 +414,17 @@ ${answersText}
                     </h3>
 
                     <div className="space-y-3">
-                      {currentQuestion.choices.map((choice, i) => {
-                        const isSelected = selectedAnswers[currentQuestion.id] === choice.points;
+                      {[
+                        ...currentQuestion.choices,
+                        { text: "I'm not sure about this option / Need a technical review", points: 3 }
+                      ].map((choice, i) => {
+                        const isSelected = selectedIndices[currentQuestion.id] === i;
                         return (
                           <motion.button
                             key={i}
                             whileHover={{ x: 4, scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
-                            onClick={() => handleSelectAnswer(choice.points)}
+                            onClick={() => handleSelectAnswer(choice.points, i)}
                             className={`w-full text-left p-4 rounded-2xl border text-sm font-light leading-relaxed transition-all flex items-center justify-between cursor-pointer ${
                               isSelected
                                 ? "bg-[#44443a] border-[#44443a] text-white"
