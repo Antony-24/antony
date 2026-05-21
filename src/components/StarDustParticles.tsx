@@ -105,7 +105,7 @@ const StarDustParticles: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 pointer-events-none z-0"
+      className="fixed inset-0 pointer-events-none z-30"
       style={{
         mixBlendMode: "screen",
         opacity: 0.85,
