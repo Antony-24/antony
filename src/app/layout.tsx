@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import StarDustParticles from "@/components/StarDustParticles";
-import FloatingSpaceElements from "@/components/FloatingSpaceElements";
 
 export const metadata: Metadata = {
   title: "Antony Francis | React Developer",
@@ -25,7 +24,6 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-background text-foreground relative">
         <StarDustParticles />
-        <FloatingSpaceElements />
         {children}
       </body>
     </html>
