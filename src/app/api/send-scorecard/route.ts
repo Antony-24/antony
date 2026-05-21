@@ -35,6 +35,9 @@ export async function POST(req: Request) {
           user: smtpUser,
           pass: smtpPass,
         },
+        tls: {
+          rejectUnauthorized: false
+        }
       });
 
       // 1. Send detailed lead report to Admin (Antony)

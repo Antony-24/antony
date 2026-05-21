@@ -163,7 +163,8 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
         // Calculate final score
         const total = Object.values(newAnswers).reduce((sum, curr) => sum + curr, 0);
         setScore(total);
-        setStage("score");
+        // Automatically submit assessment to the admin in the background
+        autoSubmitScore(total, newAnswers);
       }
     }, 280);
   };
@@ -174,20 +175,17 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
     }
   };
 
-  const handleSubmitScore = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) return;
-
+  const autoSubmitScore = async (finalScore: number, answers: Record<number, number>) => {
     setStage("submitting");
     setStatusMsg("");
 
     // Classify score
     let grade = "C (Critical Redesign Needed)";
     let recommendation = "Your website is leaking visitors due to technical friction. We recommend a full modern Next.js overhaul.";
-    if (score >= 80) {
+    if (finalScore >= 80) {
       grade = "A (Elite Platform)";
       recommendation = "Excellent performance! Only minor optimizations needed to fine-tune conversions.";
-    } else if (score >= 50) {
+    } else if (finalScore >= 50) {
       grade = "B (Standard Site)";
       recommendation = "Moderate speed and SEO, but suffers from conversion leakage. Upgrading code structure is recommended.";
     }
@@ -199,11 +197,11 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          email,
-          score,
+          email: "anonymous@visitor.com",
+          score: finalScore,
           grade,
           recommendation,
-          selectedAnswers
+          selectedAnswers: answers
         })
       });
 
@@ -211,32 +209,32 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
         const data = await response.json();
         
         if (data.method === "client_fallback_required") {
-          // SMTP not configured on server, fallback to client-side Web3Forms submission
+          // SMTP not configured on server, fallback to client-side Web3Forms submission to inform admin
           const answersText = `
-1. Mobile Speed: ${selectedAnswers[1] ?? 0} / 10 pts
-2. Responsiveness: ${selectedAnswers[2] ?? 0} / 10 pts
-3. Conversion CTA: ${selectedAnswers[3] ?? 0} / 10 pts
-4. Google SEO: ${selectedAnswers[4] ?? 0} / 10 pts
-5. Analytics Tracker: ${selectedAnswers[5] ?? 0} / 10 pts
-6. Update Frequency: ${selectedAnswers[6] ?? 0} / 10 pts
-7. Security Protocol: ${selectedAnswers[7] ?? 0} / 10 pts
-8. Stack Platform: ${selectedAnswers[8] ?? 0} / 10 pts
-9. Lead Captures: ${selectedAnswers[9] ?? 0} / 10 pts
-10. UI Aesthetics: ${selectedAnswers[10] ?? 0} / 10 pts
+1. Mobile Speed: ${answers[1] ?? 0} / 10 pts
+2. Responsiveness: ${answers[2] ?? 0} / 10 pts
+3. Conversion CTA: ${answers[3] ?? 0} / 10 pts
+4. Google SEO: ${answers[4] ?? 0} / 10 pts
+5. Analytics Tracker: ${answers[5] ?? 0} / 10 pts
+6. Update Frequency: ${answers[6] ?? 0} / 10 pts
+7. Security Protocol: ${answers[7] ?? 0} / 10 pts
+8. Stack Platform: ${answers[8] ?? 0} / 10 pts
+9. Lead Captures: ${answers[9] ?? 0} / 10 pts
+10. UI Aesthetics: ${answers[10] ?? 0} / 10 pts
           `.trim();
 
           const formData = new FormData();
           formData.append("access_key", "3b9590e7-73a5-4881-99e7-a956c496bf2d");
           formData.append("name", "Website Self-Assessment Lead");
-          formData.append("email", email);
+          formData.append("email", "anonymous@visitor.com");
           formData.append("from_name", "Antony Portfolio AI Audit");
-          formData.append("subject", `New Assessment Lead: ${score}/100 [Grade ${grade}]`);
+          formData.append("subject", `New Assessment Lead: ${finalScore}/100 [Grade ${grade}]`);
           formData.append("message", `
 =============================================
 NEW WEBSITE AUDIT ASSESSMENT REPORT
 =============================================
-Lead Email: ${email}
-Calculated Score: ${score}/100
+Lead Email: Anonymous Visitor
+Calculated Score: ${finalScore}/100
 Rating Grade: ${grade}
 Recommendation: ${recommendation}
 
@@ -245,36 +243,17 @@ ${answersText}
 =============================================
           `.trim());
 
-          const clientResponse = await fetch("https://api.web3forms.com/submit", {
+          await fetch("https://api.web3forms.com/submit", {
             method: "POST",
             body: formData
           });
-
-          let clientData;
-          try {
-            clientData = await clientResponse.json();
-          } catch (err) {
-            throw new Error("Invalid response from Web3Forms server.");
-          }
-
-          if (clientResponse.ok && clientData.success) {
-            setStage("success");
-          } else {
-            setStage("score");
-            setStatusMsg(clientData.message || "Oops! Web3Forms submission failed.");
-          }
-        } else {
-          // SMTP sent successfully from backend
-          setStage("success");
         }
-      } else {
-        setStage("score");
-        setStatusMsg("Oops! Something went wrong. Please check your details and try again.");
       }
-    } catch (err: any) {
-      console.error(err);
+    } catch (err) {
+      console.error("Auto-submit background error:", err);
+    } finally {
+      // Always transition to the score view page where the results and the success message are displayed
       setStage("score");
-      setStatusMsg(err.message || "Failed to connect. Please check your internet connection and try again.");
     }
   };
 
@@ -523,32 +502,37 @@ ${answersText}
                 </p>
               </div>
 
-              {/* Email Form */}
-              <div className="w-full max-w-md mx-auto border-t border-white/5 pt-8">
-                <h4 className="text-sm uppercase tracking-wider font-bold mb-4 text-foreground/75">
-                  Email Me My Detailed Scorecard
-                </h4>
+              {/* Success Message & CTA Buttons */}
+              <div className="w-full max-w-md mx-auto border-t border-white/5 pt-8 flex flex-col items-center">
+                <div className="flex items-start space-x-3 text-[#a1a18c] bg-[#44443a]/10 border border-[#44443a]/20 px-4 py-3 rounded-2xl mb-6 text-left">
+                  <CheckCircle2 size={18} className="shrink-0 mt-0.5 text-[#a1a18c]" />
+                  <p className="text-xs font-light leading-relaxed">
+                    Your diagnostic scorecard has been successfully recorded. We will review your site performance indicators and prepare custom suggestions for optimization.
+                  </p>
+                </div>
                 
-                <form onSubmit={handleSubmitScore} className="space-y-4">
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 focus:outline-none focus:border-[#44443a] transition-all text-sm text-white placeholder-white/30"
-                      placeholder="Enter your email address"
-                    />
-                    <button
-                      type="submit"
-                      className="px-6 py-3 rounded-xl bg-[#44443a] hover:bg-white hover:text-black font-bold flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 shadow-md shadow-[#44443a]/10 cursor-pointer"
-                    >
-                      <span>Send</span>
-                      <Send size={14} />
-                    </button>
-                  </div>
-                  {statusMsg && <p className="text-xs text-red-400 mt-2">{statusMsg}</p>}
-                </form>
+                <div className="flex flex-col sm:flex-row gap-3 w-full justify-center">
+                  <button
+                    onClick={() => {
+                      onClose();
+                      // Smooth scroll to contact
+                      const contactSection = document.getElementById("contact");
+                      if (contactSection) {
+                        contactSection.scrollIntoView({ behavior: "smooth" });
+                      }
+                    }}
+                    className="px-6 py-3 rounded-xl bg-[#44443a] hover:bg-white hover:text-black font-bold flex items-center justify-center space-x-2 transition-all hover:scale-105 active:scale-95 shadow-md shadow-[#44443a]/15 cursor-pointer w-full sm:w-auto text-sm"
+                  >
+                    <span>Book Free Consultation</span>
+                    <ArrowRight size={14} />
+                  </button>
+                  <button
+                    onClick={onClose}
+                    className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-semibold text-sm transition-colors cursor-pointer w-full sm:w-auto"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
 
             </div>
@@ -565,47 +549,7 @@ ${answersText}
             </div>
           )}
 
-          {/* SUCCESS SCREEN */}
-          {stage === "success" && (
-            <div className="p-8 md:p-12 text-center flex flex-col items-center justify-center flex-1 relative z-10">
-              <motion.div
-                initial={{ scale: 0.7, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 120, damping: 10 }}
-                className="w-20 h-20 rounded-full bg-[#44443a]/10 border border-[#44443a]/30 flex items-center justify-center text-white mb-8"
-              >
-                <CheckCircle2 size={38} className="text-[#a1a18c]" />
-              </motion.div>
 
-              <h2 className="text-3xl font-bold mb-4">Scorecard Dispatched!</h2>
-              <p className="text-foreground/50 text-sm md:text-base leading-relaxed mb-8 max-w-sm font-light">
-                Your full report has been compiled and emailed to **{email}**. Antony has been notified and is preparing to review your codebase optimization options.
-              </p>
-
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={() => {
-                    onClose();
-                    // Smooth scroll to contact
-                    const contactSection = document.getElementById("contact");
-                    if (contactSection) {
-                      contactSection.scrollIntoView({ behavior: "smooth" });
-                    }
-                  }}
-                  className="px-6 py-3 rounded-xl bg-[#44443a] hover:bg-white hover:text-black font-bold flex items-center justify-center space-x-2 transition-all hover:scale-105 active:scale-95 shadow-md shadow-[#44443a]/15 cursor-pointer"
-                >
-                  <span>Book Free Consultation</span>
-                  <ArrowRight size={14} />
-                </button>
-                <button
-                  onClick={onClose}
-                  className="px-6 py-3 rounded-xl border border-white/10 hover:bg-white/5 font-semibold text-sm transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
-            </div>
-          )}
 
         </motion.div>
       </motion.div>
