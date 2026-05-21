@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import StarDustParticles from "@/components/StarDustParticles";
-import SpacePreloader from "@/components/SpacePreloader";
+import SpaceAppContainer from "@/components/SpaceAppContainer";
 
 export const metadata: Metadata = {
   title: "Antony Francis | React Developer",
@@ -24,9 +23,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-background text-foreground relative">
-        <SpacePreloader />
-        <StarDustParticles />
-        {children}
+        <SpaceAppContainer>{children}</SpaceAppContainer>
       </body>
     </html>
   );

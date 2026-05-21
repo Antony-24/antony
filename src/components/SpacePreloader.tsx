@@ -3,7 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-const SpacePreloader: React.FC = () => {
+interface SpacePreloaderProps {
+  onLaunchComplete?: () => void;
+}
+
+const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [count, setCount] = useState<number | null>(null);
   const [statusText, setStatusText] = useState("COSMIC UPLINK: OFFLINE");
@@ -45,7 +49,7 @@ const SpacePreloader: React.FC = () => {
     setTimeout(() => {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = 1.0;
-      utterance.rate = 0.92; // Authoritative, paced astronaut cadence
+      utterance.rate = 1.0; // Standard crisp speech speed
       utterance.pitch = 0.85; // Deep radio broadcast pitch
       
       // Look for standard high-quality English synthesizers
@@ -66,25 +70,25 @@ const SpacePreloader: React.FC = () => {
 
   const handleStartLaunch = () => {
     setIsInitialized(true);
-    speakText("Cosmic engine telemetry initialized. Commencing launch sequence.");
+    speakText("T-minus five");
     setStatusText("TELEMETRY LINK: ACTIVE");
     
     // Begin countdown after introduction speech completes
     setTimeout(() => {
       setCount(5);
-    }, 2800);
+    }, 1200);
   };
 
   useEffect(() => {
     if (count === null) return;
 
     const phrases: Record<number, string> = {
-      5: "T-minus five seconds. Guidance internal.",
-      4: "T-minus four. Auxiliary thrusters armed.",
-      3: "T-minus three. Reactor ignition sequence started.",
-      2: "T-minus two. Sound suppression system active.",
-      1: "T-minus one. Main engine ignition.",
-      0: "Launch! Ignition confirmed. Systems fully operational.",
+      5: "T-five",
+      4: "four",
+      3: "three",
+      2: "two",
+      1: "one",
+      0: "zero",
     };
 
     const statusTexts: Record<number, string> = {
@@ -100,16 +104,21 @@ const SpacePreloader: React.FC = () => {
     setStatusText(statusTexts[count]);
 
     if (count === 0) {
-      // Reveal the main portfolio after 2 seconds
+      // Trigger lazy mount of main website content immediately at T-0
+      if (onLaunchComplete) {
+        onLaunchComplete();
+      }
+
+      // Slide up/fade out the preloader after a brief pause
       const timeout = setTimeout(() => {
         setIsVisible(false);
-      }, 2500);
+      }, 1500);
       return () => clearTimeout(timeout);
     }
 
     const interval = setTimeout(() => {
       setCount(count - 1);
-    }, 1200);
+    }, 1100);
 
     return () => clearTimeout(interval);
   }, [count]);
