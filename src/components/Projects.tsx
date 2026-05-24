@@ -146,6 +146,22 @@ const Projects = () => {
       github: "https://github.com/Antony-24",
     },
     {
+      title: "Coach To Change",
+      description: "A professional coaching platform designed to connect individuals with expert coaches for personal and professional development.",
+      images: ["/images/coachtochang.png"],
+      tags: ["Coaching Platform", "Professional Development"],
+      link: "https://www.coach2change.in",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "VICC Convention Centre",
+      description: "VICC Convention Centre is a state-of-the-art venue located in Kochi, Kerala, offering premium facilities for exhibitions, conferences, weddings, and corporate events.",
+      images: ["/images/vicc.png"],
+      tags: ["Event Venue", "Corporate", "Professional"],
+      link: "https://www.vicc.in",
+      github: "https://github.com/Antony-24",
+    },
+    {
       title: "Packrack",
       description: "B2B and B2C heavy-duty industrial shelving, storage racking, and warehouse solutions website featuring catalog management.",
       images: ["/images/packrack.png"],

@@ -230,7 +230,7 @@ export default function IsroData() {
         <div className="h-28" />
 
         {/* ── Main content wrapper ── */}
-        <div className="container mx-auto px-6 py-6 flex flex-col gap-6">
+        <div className="container mx-auto px-2 md:px-6 py-6 flex flex-col gap-6">
 
           {/* ── 2050 Cybernetic Title & Console Logs bar ── */}
           <div className="border border-[#44443a]/30 bg-black/60 backdrop-blur-md rounded-lg p-5 flex flex-col lg:flex-row gap-5 justify-between items-start lg:items-center relative overflow-hidden">
@@ -283,8 +283,8 @@ export default function IsroData() {
                       addLog(`Navigated to deck: ${tab.label}`);
                     }}
                     className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all duration-300 min-w-max lg:min-w-0 shrink-0 snap-start ${active
-                        ? "bg-[#44443a]/15 border-[#44443a] text-white shadow-[inset_0_0_12px_rgba(68,68,58,0.25)]"
-                        : "bg-transparent border-transparent text-white/55 hover:bg-white/5 hover:text-white"
+                      ? "bg-[#44443a]/15 border-[#44443a] text-white shadow-[inset_0_0_12px_rgba(68,68,58,0.25)]"
+                      : "bg-transparent border-transparent text-white/55 hover:bg-white/5 hover:text-white"
                       }`}
                   >
                     <Icon className={`w-5 h-5 shrink-0 ${active ? "text-white" : "text-white/40"}`} />

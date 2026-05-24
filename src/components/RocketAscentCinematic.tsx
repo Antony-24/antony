@@ -223,7 +223,6 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
     // ── T+8.0s  Transition to website ─────────────────────────────────────
     const tH = setTimeout(() => {
       addLog("SYS T+8.0s: Portfolio payload delivered — loading site", "sys");
-      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
       if (gainNodeRef.current && audioCtxRef.current) {
         gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 0.5);
       }
@@ -234,8 +233,6 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
       clearInterval(ticker);
       clearTimeout(tA); clearTimeout(tB); clearTimeout(tB2); clearTimeout(tB3); clearTimeout(tC); clearTimeout(tD);
       clearTimeout(tE); clearTimeout(tF); clearTimeout(tG); clearTimeout(tH);
-      try { if (audioCtxRef.current) audioCtxRef.current.close(); } catch (e) {}
-      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     };
   }, []); // ← runs ONCE only — no stage dependency
 
@@ -262,12 +259,12 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
       {/* ── Header bar ── */}
       <div className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/50 backdrop-blur-md shrink-0">
         <div className="flex items-center gap-3">
-          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-white shadow-[0_0_6px_#ffffff] animate-pulse" />
           <span className="text-xs font-bold tracking-widest text-white/70">MISSION CONTROL — AF-CONVERTIX LANDER</span>
         </div>
         <div className="hidden md:flex items-center gap-6 text-[10px] text-white/40 font-bold tracking-wider">
           <span>TARGET: <span className="text-white">ANTONY PORTFOLIO</span></span>
-          <span>STATUS: <span className="text-emerald-400">{statusText}</span></span>
+          <span>STATUS: <span className="text-white">{statusText}</span></span>
         </div>
         <button
           onClick={toggleMute}
@@ -291,7 +288,7 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
           ].map(([k, v]) => (
             <div key={k} className="flex justify-between items-center bg-white/5 px-2 py-1.5 rounded border border-white/5 text-[10px]">
               <span className="text-white/45">{k}</span>
-              <span className="text-emerald-400 font-bold">{v}</span>
+              <span className="text-white font-bold">{v}</span>
             </div>
           ))}
 
@@ -304,8 +301,8 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
                 ["LANDER DEPLOYED", fairingOpen],
               ].map(([label, done]) => (
                 <div key={label as string} className="flex items-center gap-2 text-[10px]">
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${done ? "bg-emerald-500 shadow-[0_0_6px_#10b981]" : "bg-white/15 animate-pulse"}`} />
-                  <span className={done ? "text-emerald-400 font-bold" : "text-white/35"}>{label as string}</span>
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${done ? "bg-white shadow-[0_0_6px_#ffffff]" : "bg-white/15 animate-pulse"}`} />
+                  <span className={done ? "text-white font-bold" : "text-white/35"}>{label as string}</span>
                 </div>
               ))}
             </div>
@@ -328,7 +325,7 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
                   <motion.div key={i}
                     animate={{ scale: [1,2.5,3.5], opacity: [0.6,0.3,0], x: [0,(i-2.5)*14], y: [0,35] }}
                     transition={{ duration: Math.random()*0.35+0.25, repeat: Infinity, ease: "easeOut" }}
-                    className="absolute w-8 h-8 bg-gradient-to-t from-orange-500 via-gray-600 to-transparent rounded-full blur-md"
+                    className="absolute w-8 h-8 bg-gradient-to-t from-orange-500 via-[#44443a] to-transparent rounded-full blur-md"
                   />
                 ))}
               </div>
@@ -350,8 +347,8 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
                   transition={{ duration: 0.25 }}
                   className={`text-[10px] leading-snug px-2 py-1.5 rounded border ${
                     log.type === "sys"
-                      ? "text-cyan-400 bg-cyan-950/25 border-cyan-800/20"
-                      : "text-emerald-400 bg-emerald-950/20 border-emerald-800/20"
+                      ? "text-[#8f8f7c] bg-[#44443a]/20 border-[#44443a]/30"
+                      : "text-white bg-white/5 border-white/10"
                   }`}
                 >
                   {log.text}
@@ -379,7 +376,7 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
               </div>
               <div className="w-full h-[2px] bg-white/5 mt-2 rounded-full overflow-hidden">
                 <motion.div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400"
+                  className="h-full bg-gradient-to-r from-[#44443a] to-[#8f8f7c]"
                   animate={{ width: `${Math.min((item[3] as number) * 100, 100)}%` }}
                   transition={{ duration: 0.08 }}
                 />
@@ -388,7 +385,7 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
           ) : (
             <div key={idx} className="flex flex-col justify-center pl-2">
               <div className="text-[9px] text-white/35 tracking-widest mb-1">SEQUENCE STATUS</div>
-              <div className="text-[11px] font-bold text-emerald-400 animate-pulse uppercase">{statusText}</div>
+              <div className="text-[11px] font-bold text-white animate-pulse uppercase">{statusText}</div>
             </div>
           )
         )}
@@ -406,19 +403,19 @@ const RocketSVG: React.FC<{ stage: string; detachingBooster: boolean; fairingOpe
     {/* Nosecone / Fairing */}
     {!fairingOpen ? (
       <div className="w-12 h-20 flex flex-col items-center z-20">
-        <div className="w-2 h-2.5 bg-zinc-800 rounded-t-full" />
-        <div className="w-10 h-[4.5rem] bg-gradient-to-b from-zinc-200 via-zinc-300 to-zinc-400 border border-white/20 rounded-t-[2rem] relative overflow-hidden flex items-center justify-center">
-          <div className="absolute top-3 w-full h-px bg-red-500/50" />
-          <div className="absolute left-1/2 w-px h-full bg-zinc-500/20 top-0" />
+        <div className="w-2 h-2.5 bg-[#44443a] rounded-t-full" />
+        <div className="w-10 h-[4.5rem] bg-gradient-to-b from-white via-white/80 to-[#44443a] border border-white/20 rounded-t-[2rem] relative overflow-hidden flex items-center justify-center">
+          <div className="absolute top-3 w-full h-px bg-[#44443a]/50" />
+          <div className="absolute left-1/2 w-px h-full bg-[#44443a]/20 top-0" />
         </div>
       </div>
     ) : (
       <div className="w-28 h-20 relative flex justify-between z-20">
         <motion.div initial={{ x: 0, rotate: 0, opacity: 1 }} animate={{ x: -80, y: 70, rotate: -70, opacity: 0 }}
           transition={{ duration: 1.6, ease: "easeOut" }}
-          className="w-5 h-[4.5rem] bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-tl-[2rem] border border-white/20" />
+          className="w-5 h-[4.5rem] bg-gradient-to-b from-white to-[#44443a] rounded-tl-[2rem] border border-white/20" />
 
-        {/* Gold MLI Lander */}
+        {/* Gold MLI Lander -> Brand Lander */}
         <motion.div initial={{ scale: 0.85, y: 10 }} animate={{ scale: 1.2, y: -18 }}
           transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
           className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
@@ -426,62 +423,62 @@ const RocketSVG: React.FC<{ stage: string; detachingBooster: boolean; fairingOpe
           <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.2, duration: 1, ease: "easeOut" }}
             className="absolute w-24 h-4 flex justify-between">
             {[0,1].map(i => (
-              <div key={i} className={`w-9 h-4 ${i===0?"bg-gradient-to-r":"bg-gradient-to-l"} from-blue-700 via-blue-900 to-cyan-800 border border-cyan-400/60 rounded-sm overflow-hidden shadow-[0_0_8px_rgba(6,182,212,0.35)]`}>
-                <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_5px,#475569_6px)] opacity-40" />
+              <div key={i} className={`w-9 h-4 ${i===0?"bg-gradient-to-r":"bg-gradient-to-l"} from-black via-black/80 to-[#44443a] border border-[#44443a] rounded-sm overflow-hidden shadow-[0_0_8px_rgba(68,68,58,0.35)]`}>
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_5px,rgba(255,255,255,0.1)_6px)] opacity-40" />
               </div>
             ))}
           </motion.div>
           {/* Body */}
-          <div className="w-7 h-9 bg-gradient-to-b from-yellow-400 via-yellow-600 to-yellow-800 border border-yellow-300/50 rounded shadow-[0_0_14px_rgba(234,179,8,0.4)] flex flex-col items-center justify-between p-1 z-10">
-            <div className="w-3.5 h-3.5 rounded-full bg-zinc-200 border border-zinc-400 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+          <div className="w-7 h-9 bg-gradient-to-b from-[#8f8f7c] via-[#44443a] to-black border border-white/20 rounded shadow-[0_0_14px_rgba(68,68,58,0.4)] flex flex-col items-center justify-between p-1 z-10">
+            <div className="w-3.5 h-3.5 rounded-full bg-white border border-[#44443a] flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#8f8f7c] animate-ping" />
             </div>
-            <div className="w-2.5 h-1.5 bg-black border border-zinc-600 rounded-sm" />
+            <div className="w-2.5 h-1.5 bg-black border border-[#44443a] rounded-sm" />
           </div>
           {/* Landing legs */}
           <div className="absolute -bottom-1 w-10 h-3 flex justify-between px-1">
-            <div className="w-1 h-3 bg-zinc-400 origin-top rotate-45 rounded-sm" />
-            <div className="w-1 h-3 bg-zinc-400 origin-top -rotate-45 rounded-sm" />
+            <div className="w-1 h-3 bg-[#8f8f7c] origin-top rotate-45 rounded-sm" />
+            <div className="w-1 h-3 bg-[#8f8f7c] origin-top -rotate-45 rounded-sm" />
           </div>
         </motion.div>
 
         <motion.div initial={{ x: 0, rotate: 0, opacity: 1 }} animate={{ x: 80, y: 70, rotate: 70, opacity: 0 }}
           transition={{ duration: 1.6, ease: "easeOut" }}
-          className="w-5 h-[4.5rem] bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-tr-[2rem] border border-white/20" />
+          className="w-5 h-[4.5rem] bg-gradient-to-b from-white to-[#44443a] rounded-tr-[2rem] border border-white/20" />
       </div>
     )}
 
     {/* Stage 2 tank */}
-    <div className="w-10 h-24 bg-gradient-to-b from-zinc-300 via-zinc-200 to-zinc-500 border-x border-white/15 relative flex items-center justify-center z-10 shadow-lg overflow-hidden">
-      <div className="absolute top-0 w-full h-1 bg-zinc-600/50" />
-      <span className="text-[7px] font-black tracking-widest text-zinc-700 rotate-90 whitespace-nowrap">AF CONVERTIX</span>
-      <div className="absolute bottom-0 w-full h-1 bg-zinc-600/50" />
+    <div className="w-10 h-24 bg-gradient-to-b from-white via-white/80 to-[#8f8f7c] border-x border-white/15 relative flex items-center justify-center z-10 shadow-lg overflow-hidden">
+      <div className="absolute top-0 w-full h-1 bg-[#44443a]/50" />
+      <span className="text-[7px] font-black tracking-widest text-[#44443a] rotate-90 whitespace-nowrap">AF CONVERTIX</span>
+      <div className="absolute bottom-0 w-full h-1 bg-[#44443a]/50" />
     </div>
 
     {/* Stage 2 vacuum nozzle & plume */}
     {stage !== "stage1" && !fairingOpen && (
       <div className="relative w-6 h-4 flex flex-col items-center z-10">
-        <div className="w-4 h-3 bg-gradient-to-b from-amber-600 to-zinc-900 rounded-b border-x border-amber-700" />
+        <div className="w-4 h-3 bg-gradient-to-b from-[#44443a] to-black rounded-b border-x border-[#44443a]" />
         <motion.div animate={{ scaleY: [1,1.3,0.9,1.2] }} transition={{ repeat: Infinity, duration: 0.09 }}
-          className="absolute top-2 w-3 h-16 bg-gradient-to-b from-cyan-400 via-sky-500 to-transparent rounded-full blur-[2px] shadow-[0_0_18px_#06b6d4] origin-top" />
+          className="absolute top-2 w-3 h-16 bg-gradient-to-b from-orange-400 via-red-500 to-transparent rounded-full blur-[2px] shadow-[0_0_18px_orange] origin-top" />
       </div>
     )}
 
     {/* Stage 1 booster */}
     {!detachingBooster ? (
-      <div className="w-12 h-28 bg-gradient-to-b from-zinc-200 via-zinc-400 to-zinc-600 border border-white/10 rounded-b relative flex flex-col items-center z-10 shadow-2xl">
+      <div className="w-12 h-28 bg-gradient-to-b from-white via-white/70 to-[#8f8f7c] border border-white/10 rounded-b relative flex flex-col items-center z-10 shadow-2xl">
         {/* Grid fins */}
         {[-1,1].map((dir) => (
-          <div key={dir} className={`absolute ${dir===-1?"-left-2.5":"-right-2.5"} top-2 w-2.5 h-5 bg-zinc-700 border border-zinc-500 rounded-sm ${dir===1?"-skew-y-3":"skew-y-3"} flex flex-col justify-evenly overflow-hidden`}>
-            {[0,1,2].map(l => <div key={l} className="w-full h-px bg-zinc-500" />)}
+          <div key={dir} className={`absolute ${dir===-1?"-left-2.5":"-right-2.5"} top-2 w-2.5 h-5 bg-[#44443a] border border-white/20 rounded-sm ${dir===1?"-skew-y-3":"skew-y-3"} flex flex-col justify-evenly overflow-hidden`}>
+            {[0,1,2].map(l => <div key={l} className="w-full h-px bg-white/20" />)}
           </div>
         ))}
         {/* Nozzle ring */}
-        <div className="absolute bottom-2 w-full h-px bg-red-500/60" />
+        <div className="absolute bottom-2 w-full h-px bg-[#44443a]/80" />
         {/* Three engine bells */}
         <div className="absolute -bottom-1.5 w-10 flex justify-between px-0.5">
           {[0,1,2].map(i => (
-            <div key={i} className={`${i===1?"w-4":"w-2.5"} h-3 bg-gradient-to-b from-zinc-700 to-zinc-900 border border-zinc-800 rounded-b-sm`} />
+            <div key={i} className={`${i===1?"w-4":"w-2.5"} h-3 bg-gradient-to-b from-[#44443a] to-black border border-white/10 rounded-b-sm`} />
           ))}
         </div>
         {/* Flame plume */}
@@ -493,8 +490,8 @@ const RocketSVG: React.FC<{ stage: string; detachingBooster: boolean; fairingOpe
     ) : (
       <motion.div initial={{ y:0, opacity:1, rotate:0 }} animate={{ y:300, opacity:0, rotate:20 }}
         transition={{ duration: 2, ease:"easeIn" }}
-        className="w-12 h-28 bg-gradient-to-b from-zinc-200 via-zinc-400 to-zinc-600 border border-white/10 rounded-b relative z-0">
-        <div className="absolute -bottom-4 left-3 w-6 h-8 bg-gray-400/15 blur-md rounded-full animate-pulse" />
+        className="w-12 h-28 bg-gradient-to-b from-white via-white/70 to-[#8f8f7c] border border-white/10 rounded-b relative z-0">
+        <div className="absolute -bottom-4 left-3 w-6 h-8 bg-white/10 blur-md rounded-full animate-pulse" />
       </motion.div>
     )}
 

@@ -402,7 +402,7 @@ export default function NasaData() {
         <div className="h-28" />
 
         {/* ── Outer telemetry framework wrapper ── */}
-        <div className="container mx-auto px-6 py-6 flex flex-col gap-6">
+        <div className="container mx-auto px-2 md:px-6 py-6 flex flex-col gap-6">
 
           {/* ── 2050 Cybernetic Title & Console Logs bar ── */}
           <div className="border border-[#44443a]/30 bg-black/60 backdrop-blur-md rounded-lg p-5 flex flex-col lg:flex-row gap-5 justify-between items-start lg:items-center relative overflow-hidden">
