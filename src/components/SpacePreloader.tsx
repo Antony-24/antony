@@ -12,6 +12,40 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
   const [count, setCount] = useState<number | null>(null);
   const [statusText, setStatusText] = useState("COSMIC UPLINK: OFFLINE");
   const [isVisible, setIsVisible] = useState(true);
+  const [clientIp, setClientIp] = useState("");
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+  // Fetch client IP on mount for custom prelaunch launchphrase
+  useEffect(() => {
+    fetch("https://api.ipify.org?format=json")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.ip) {
+          setClientIp(data.ip);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch client IP for cosmic launch:", err);
+      });
+  }, []);
+
+  // Pre-load and listen to SpeechSynthesis voices
+  useEffect(() => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+
+    const loadVoices = () => {
+      const allVoices = window.speechSynthesis.getVoices();
+      if (allVoices.length > 0) {
+        setVoices(allVoices);
+        console.log("SpeechSynthesis voices loaded. Total count:", allVoices.length);
+      }
+    };
+
+    loadVoices();
+    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   // Audio synthesis helper for authentic astronaut radio chirps
   const playRadioChirp = (frequencyStart: number, frequencyEnd: number, duration: number, volume: number) => {
@@ -50,14 +84,52 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = 1.0;
       utterance.rate = 0.98; // Natural, crisp cockpit speaking speed
-      utterance.pitch = 0.85; // Deep radio broadcast pitch
       
-      // Look for standard high-quality English synthesizers
-      const voices = window.speechSynthesis.getVoices();
-      const preferredVoice = voices.find(
+      // Get current voices from speechSynthesis or state
+      const currentVoices = window.speechSynthesis.getVoices().length > 0 
+        ? window.speechSynthesis.getVoices() 
+        : voices;
+
+      const englishVoices = currentVoices.filter(
+        (v) => v.lang.includes("en-US") || v.lang.includes("en-GB") || v.lang.startsWith("en")
+      );
+      
+      // Try to find a high-quality male voice
+      const maleVoice = englishVoices.find((v) => {
+        const name = v.name.toLowerCase();
+        return (
+          name.includes("male") ||
+          name.includes("david") ||
+          name.includes("alex") ||
+          name.includes("daniel") ||
+          name.includes("oliver") ||
+          name.includes("fred") ||
+          name.includes("rishi") ||
+          name.includes("google us english male") ||
+          name.includes("microsoft david")
+        );
+      });
+      
+      const preferredVoice = maleVoice || englishVoices.find(
         (v) => v.lang.includes("en-US") || v.lang.includes("en-GB")
       );
-      if (preferredVoice) utterance.voice = preferredVoice;
+      
+      if (preferredVoice) {
+        utterance.voice = preferredVoice;
+        // If it's a fallback female voice, make the pitch even deeper to sound masculine
+        const isMale = preferredVoice.name.toLowerCase().includes("male") || 
+                       preferredVoice.name.toLowerCase().includes("david") ||
+                       preferredVoice.name.toLowerCase().includes("alex") ||
+                       preferredVoice.name.toLowerCase().includes("daniel") ||
+                       preferredVoice.name.toLowerCase().includes("oliver") ||
+                       preferredVoice.name.toLowerCase().includes("fred") ||
+                       preferredVoice.name.toLowerCase().includes("rishi");
+        utterance.pitch = isMale ? 0.85 : 0.70;
+        console.log("Selected Preloader Voice:", preferredVoice.name, "isMale:", isMale);
+      } else {
+        utterance.pitch = 0.70;
+        console.log("No preferred English voice found, using system default.");
+      }
 
       utterance.onend = () => {
         // Play mic key-down radio chirp
@@ -88,7 +160,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
       3: "three",
       2: "two",
       1: "one",
-      0: "zero. Booster ignition, and lift off to AF Convertix!",
+      0: `zero. Go For main engines On and lift off from ${clientIp || "local uplink"} to AF Convertix!`,
     };
 
     const statusTexts: Record<number, string> = {
@@ -97,7 +169,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
       3: "LAUNCH STATE: T-3 (REACTOR IGNITION)",
       2: "LAUNCH STATE: T-2 (SUPPRESSION ENGAGED)",
       1: "LAUNCH STATE: T-1 (MAIN ENGINE READY)",
-      0: "LIFT OFF ENGAGED: PILOT IN COCKPIT",
+      0: `LIFT OFF FROM ${clientIp || "LOCAL IP"} TO AF CONVERTIX!`,
     };
 
     speakText(phrases[count]);
@@ -121,7 +193,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
     }, 1100);
 
     return () => clearTimeout(interval);
-  }, [count]);
+  }, [count, clientIp]);
 
   return (
     <AnimatePresence>
