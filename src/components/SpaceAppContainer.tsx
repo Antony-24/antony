@@ -2,26 +2,34 @@
 
 import React, { useState } from "react";
 import SpacePreloader from "./SpacePreloader";
+import { RocketAscentCinematic } from "./RocketAscentCinematic";
 import StarDustParticles from "./StarDustParticles";
 
 interface SpaceAppContainerProps {
   children: React.ReactNode;
 }
 
+type LaunchStage = "preloader" | "ascent" | "website";
+
 const SpaceAppContainer: React.FC<SpaceAppContainerProps> = ({ children }) => {
-  const [isLaunched, setIsLaunched] = useState(false);
+  const [stage, setStage] = useState<LaunchStage>("preloader");
 
   return (
     <>
-      <SpacePreloader onLaunchComplete={() => setIsLaunched(true)} />
-      {isLaunched ? (
+      {stage === "preloader" && (
+        <SpacePreloader onLaunchComplete={() => setStage("ascent")} />
+      )}
+      {stage === "ascent" && (
+        <RocketAscentCinematic onCinematicComplete={() => setStage("website")} />
+      )}
+      {stage === "website" && (
         <>
           <StarDustParticles />
           {children}
         </>
-      ) : (
-        // Render a clean black backdrop to optimize memory and CPU thread consumption during countdown
-        <div className="min-h-screen bg-[#050507]" />
+      )}
+      {stage !== "website" && (
+        <div className="min-h-screen bg-[#050507] fixed inset-0 z-[999]" />
       )}
     </>
   );
