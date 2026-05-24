@@ -73,6 +73,38 @@ const ProjectCard = ({ title, description, images, tags, link, github }: Project
 const Projects = () => {
   const projects: ProjectProps[] = [
     {
+      title: "Deep Space Telemetry (NASA)",
+      description: "Real-time planetary data visualization platform featuring APOD, Mars rover imagery, NeoWs asteroid tracking, and ISS orbit telemetry.",
+      images: ["/images/nasa.png"],
+      tags: ["Next.js", "Tailwind CSS", "NASA API", "Framer Motion"],
+      link: "/nasa-data",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Indian Aerospace Telemetry (ISRO)",
+      description: "Comprehensive ISRO data dashboard featuring active launcher registries, spacecraft tracking, customer payloads, and Bhuvan meteorological scans.",
+      images: ["/images/isro.png"],
+      tags: ["Next.js", "ISRO APIs", "Data Viz", "Framer Motion"],
+      link: "/isro-data",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Global Atmospheric Data",
+      description: "Advanced meteorological tracking application featuring real-time global weather telemetry, local geolocation syncing, and 7-day trajectory forecasts.",
+      images: ["/images/gad.png"],
+      tags: ["Next.js", "Open-Meteo API", "Geolocation", "Tailwind CSS"],
+      link: "/weather",
+      github: "https://github.com/Antony-24",
+    },
+    {
+      title: "Personal Portfolio",
+      description: "Personal portfolio website featuring projects, blogs, and other relevant information.",
+      images: ["/images/portfolio.png"],
+      tags: ["Next.js", "Portfolio", "Tailwind CSS"],
+      link: "/",
+      github: "https://github.com/Antony-24",
+    },
+    {
       title: "Hilltop Granite",
       description: "Premium marble and granite distributor website featuring an elegant, rich portfolio of stone designs, slabs, and countertop collections.",
       images: ["/images/hilltop.png"],
@@ -80,6 +112,7 @@ const Projects = () => {
       link: "https://www.hilltopgranite.com/",
       github: "https://github.com/Antony-24",
     },
+
     {
       title: "Global Business Tech",
       description: "Enterprise IT solutions and professional consultancy platform showcasing services in hardware, network security, and cloud infrastructure.",
@@ -232,7 +265,7 @@ const Projects = () => {
       <div className="container mx-auto relative z-10">
 
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 80, damping: 14 }}
@@ -308,7 +341,7 @@ const Projects = () => {
         </motion.div>
 
         {/* Dots + Counter */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
@@ -321,8 +354,8 @@ const Projects = () => {
                 onClick={() => setCurrent(N + i)}
                 aria-label={`Go to project ${i + 1}`}
                 className={`transition-all duration-300 rounded-full ${i === activeIndex
-                    ? "w-8 h-2 bg-white"
-                    : "w-2 h-2 bg-white/20 hover:bg-white/40"
+                  ? "w-8 h-2 bg-white"
+                  : "w-2 h-2 bg-white/20 hover:bg-white/40"
                   }`}
               />
             ))}
@@ -333,7 +366,7 @@ const Projects = () => {
         </motion.div>
 
       </div>
-      
+
       {/* Decorative Glow */}
       <div className="absolute top-1/4 right-0 w-80 h-80 bg-[#44443a]/5 blur-[120px] rounded-full pointer-events-none"></div>
     </section>

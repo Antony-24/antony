@@ -8,602 +8,495 @@ interface RocketAscentCinematicProps {
 }
 
 export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ onCinematicComplete }) => {
-  const [telemetry, setTelemetry] = useState({
-    altitude: 0,
-    velocity: 0,
-    acceleration: 1.2,
-    statusText: "STAGE 1: MAIN ENGINE IGNITION COMPLETE",
-  });
-
+  const [telemetry, setTelemetry] = useState({ altitude: 0, velocity: 0, acceleration: 2.8 });
   const [stage, setStage] = useState<"stage1" | "stage2" | "stage3">("stage1");
   const [detachingBooster, setDetachingBooster] = useState(false);
   const [fairingOpen, setFairingOpen] = useState(false);
+  const [statusText, setStatusText] = useState("STAGE 1: MAIN ENGINE IGNITION");
   const [isMuted, setIsMuted] = useState(false);
-  
+  const [logs, setLogs] = useState<{ id: number; text: string; type: "sys" | "cmd" }[]>([
+    { id: 0, text: "SYS BOOT: Mission control uplink secured", type: "sys" },
+    { id: 1, text: "SYS BOOT: Autopilot guidance vector locked", type: "sys" },
+  ]);
+
+  // Refs to avoid stale closures in the single effect
+  const stageRef = useRef<"stage1" | "stage2" | "stage3">("stage1");
+  const isMutedRef = useRef(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
-  const audioNodesRef = useRef<{
-    whiteNoise: AudioBufferSourceNode;
-    modulator: OscillatorNode;
-    gainNode: GainNode;
-    filterNode: BiquadFilterNode;
-  } | null>(null);
-
-  // Initialize Web Audio engine rumble
+  const gainNodeRef = useRef<GainNode | null>(null);
+  const filterNodeRef = useRef<BiquadFilterNode | null>(null);
+  const logIdRef = useRef(2);
+  // Preload voices immediately on mount
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([]);
   useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    try {
-      const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
-      const audioCtx = new AudioContextClass();
-      audioCtxRef.current = audioCtx;
-
-      // Create white noise buffer for engine roar
-      const bufferSize = 2 * audioCtx.sampleRate;
-      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-      const output = noiseBuffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        output[i] = Math.random() * 2 - 1;
-      }
-
-      const whiteNoise = audioCtx.createBufferSource();
-      whiteNoise.buffer = noiseBuffer;
-      whiteNoise.loop = true;
-
-      // Low pass filter to create a deep bass rumble
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(90, audioCtx.currentTime);
-
-      // Low-frequency oscillator for engine combustion pulsation
-      const modulator = audioCtx.createOscillator();
-      modulator.type = "sine";
-      modulator.frequency.setValueAtTime(14, audioCtx.currentTime); // 14Hz combustion flutter
-      
-      const modulatorGain = audioCtx.createGain();
-      modulatorGain.gain.setValueAtTime(25, audioCtx.currentTime);
-
-      // Main gain node for volume adjustments
-      const gainNode = audioCtx.createGain();
-      gainNode.gain.setValueAtTime(isMuted ? 0 : 0.6, audioCtx.currentTime);
-
-      // Connect nodes
-      modulator.connect(modulatorGain);
-      modulatorGain.connect(filter.frequency);
-      
-      whiteNoise.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(audioCtx.destination);
-
-      whiteNoise.start();
-      modulator.start();
-
-      audioNodesRef.current = { whiteNoise, modulator, gainNode, filterNode: filter };
-    } catch (e) {
-      console.warn("Web Audio API not supported or blocked by browser policies:", e);
-    }
-
-    return () => {
-      // Clean up audio nodes on unmount
-      if (audioNodesRef.current) {
-        try {
-          audioNodesRef.current.whiteNoise.stop();
-          audioNodesRef.current.modulator.stop();
-        } catch (e) {}
-      }
-      if (audioCtxRef.current) {
-        audioCtxRef.current.close();
-      }
-    };
+    const load = () => { voicesRef.current = window.speechSynthesis.getVoices(); };
+    load();
+    window.speechSynthesis.onvoiceschanged = load;
   }, []);
 
-  // Update volume based on mute state or stage transitions
-  useEffect(() => {
-    if (audioNodesRef.current && audioCtxRef.current) {
-      const vol = isMuted ? 0 : (stage === "stage3" ? 0.05 : (stage === "stage2" ? 0.4 : 0.6));
-      audioNodesRef.current.gainNode.gain.linearRampToValueAtTime(
-        vol,
-        audioCtxRef.current.currentTime + 0.5
-      );
-    }
-  }, [isMuted, stage]);
+  const addLog = (text: string, type: "sys" | "cmd" = "cmd") => {
+    const id = logIdRef.current++;
+    setLogs((prev) => [...prev, { id, text, type }]);
+  };
 
-  // Audio synthesis helper for authentic astronaut radio chirps
-  const playRadioChirp = (frequencyStart: number, frequencyEnd: number, duration: number, volume: number) => {
-    if (!audioCtxRef.current || isMuted) return;
+  // speak: does NOT cancel previous — each announcement plays sequentially
+  const speak = (text: string) => {
+    if (typeof window === "undefined" || !window.speechSynthesis || isMutedRef.current) return;
     try {
-      const audioCtx = audioCtxRef.current;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(frequencyStart, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(frequencyEnd, audioCtx.currentTime + duration);
-      
-      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-      
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.volume = 1.0;
+      utterance.rate = 0.95;
+      utterance.pitch = 0.75;
+      const voices = voicesRef.current.length > 0 ? voicesRef.current : window.speechSynthesis.getVoices();
+      const en = voices.filter((v) => v.lang.startsWith("en"));
+      const male = en.find((v) => {
+        const n = v.name.toLowerCase();
+        return n.includes("male") || n.includes("david") || n.includes("alex") || n.includes("daniel") || n.includes("fred") || n.includes("oliver") || n.includes("rishi");
+      });
+      const preferred = male || en.find((v) => v.lang.includes("en-US") || v.lang.includes("en-GB")) || en[0];
+      if (preferred) { utterance.voice = preferred; }
+      window.speechSynthesis.speak(utterance);
     } catch (e) {}
   };
 
-  // Robot / Astronaut speech synthesis helper
-  const speakMissionControl = (text: string) => {
-    if (typeof window === "undefined" || !window.speechSynthesis || isMuted) return;
-    
-    window.speechSynthesis.cancel();
-    playRadioChirp(800, 1200, 0.08, 0.04);
-
-    setTimeout(() => {
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.volume = 1.0;
-      utterance.rate = 1.0;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const englishVoices = voices.filter(
-        (v) => v.lang.includes("en-US") || v.lang.includes("en-GB") || v.lang.startsWith("en")
-      );
-      const maleVoice = englishVoices.find((v) => {
-        const name = v.name.toLowerCase();
-        return (
-          name.includes("male") ||
-          name.includes("david") ||
-          name.includes("alex") ||
-          name.includes("daniel") ||
-          name.includes("oliver") ||
-          name.includes("fred") ||
-          name.includes("microsoft david") ||
-          name.includes("google us english male")
-        );
-      });
-      const preferredVoice = maleVoice || englishVoices.find(
-        (v) => v.lang.includes("en-US") || v.lang.includes("en-GB")
-      );
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-        const isMale = preferredVoice.name.toLowerCase().includes("male") || 
-                       preferredVoice.name.toLowerCase().includes("david") ||
-                       preferredVoice.name.toLowerCase().includes("alex") ||
-                       preferredVoice.name.toLowerCase().includes("daniel") ||
-                       preferredVoice.name.toLowerCase().includes("oliver") ||
-                       preferredVoice.name.toLowerCase().includes("fred");
-        utterance.pitch = isMale ? 0.85 : 0.70;
-      } else {
-        utterance.pitch = 0.70;
-      }
-
-      utterance.onend = () => {
-        playRadioChirp(1000, 500, 0.07, 0.03);
-      };
-      
-      window.speechSynthesis.speak(utterance);
-    }, 100);
-  };
-
-  // Main cinematic timing controller
+  // Single useEffect — never re-runs, no dependency array triggers
   useEffect(() => {
-    speakMissionControl("Main engine start. Boosters at 100% capacity.");
+    // — Audio engine setup —
+    try {
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      const ctx = new Ctx();
+      audioCtxRef.current = ctx;
 
-    // Telemetry tick interval
-    const telemetryInterval = setInterval(() => {
+      const masterGain = ctx.createGain();
+      masterGain.gain.setValueAtTime(0.0, ctx.currentTime);
+      masterGain.gain.linearRampToValueAtTime(0.6, ctx.currentTime + 1.5);
+      gainNodeRef.current = masterGain;
+      masterGain.connect(ctx.destination);
+
+      // ── Interstellar organ drone ─────────────────────────────────────────
+      const organFreqs = [55, 82.4, 110, 164.8];
+      organFreqs.forEach((freq, i) => {
+        const osc = ctx.createOscillator();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        const oscGain = ctx.createGain();
+        oscGain.gain.setValueAtTime(0.08 / (i + 1), ctx.currentTime);
+        const lpf = ctx.createBiquadFilter();
+        lpf.type = "lowpass";
+        lpf.frequency.setValueAtTime(600, ctx.currentTime);
+        lpf.Q.setValueAtTime(1.5, ctx.currentTime);
+        osc.connect(lpf); lpf.connect(oscGain); oscGain.connect(masterGain);
+        osc.start();
+      });
+
+      // ── Engine rumble (filtered white noise) ─────────────────────────────
+      const bufSize = 2 * ctx.sampleRate;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+      const noise = ctx.createBufferSource();
+      noise.buffer = buf; noise.loop = true;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "lowpass";
+      filter.frequency.setValueAtTime(90, ctx.currentTime);
+      filterNodeRef.current = filter;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.35, ctx.currentTime);
+      
+      const lfo = ctx.createOscillator();
+      lfo.frequency.setValueAtTime(14, ctx.currentTime);
+      const lfoGain = ctx.createGain();
+      lfoGain.gain.setValueAtTime(22, ctx.currentTime);
+      lfo.connect(lfoGain); lfoGain.connect(filter.frequency);
+      
+      noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(masterGain);
+      noise.start(); lfo.start();
+    } catch (e) {}
+
+    // ── T+0.0s  Main engine ignition ──────────────────────────────────────
+    speak("Main engine start. Boosters at one hundred percent.");
+    addLog("CMD T+0s: Main engine start — boosters 100%", "cmd");
+
+    // ── Telemetry ticker (reads stageRef — no stale closure) ──────────────
+    const accelRef = { current: 2.8 };
+    const ticker = setInterval(() => {
+      const s = stageRef.current;
+      const a = accelRef.current;
       setTelemetry((prev) => {
-        let altInc = 0;
-        let velInc = 0;
-        let acc = prev.acceleration;
-        let status = prev.statusText;
-
-        if (stage === "stage1") {
-          altInc = Math.floor(Math.random() * 80) + 120;
-          velInc = Math.floor(Math.random() * 30) + 70;
-          acc = 2.4;
-          status = "STAGE 1: EXTREME BURST ASCENT";
-        } else if (stage === "stage2") {
-          altInc = Math.floor(Math.random() * 250) + 350;
-          velInc = Math.floor(Math.random() * 90) + 180;
-          acc = 4.2;
-          status = "STAGE 2: THERMOSPHERE BURNING";
-        } else if (stage === "stage3") {
-          altInc = Math.floor(Math.random() * 50) + 20;
-          velInc = 28000; // Orbital velocity
-          acc = 0.0; // Weightlessness
-          status = "STAGE 3: ORBITAL INSERTION NOMINAL";
-        }
-
+        if (s === "stage1") return {
+          altitude: Math.min(prev.altitude + Math.random() * 400 + 300, 45000),
+          velocity: Math.min(prev.velocity + Math.random() * 130 + 180, 9000),
+          acceleration: a,
+        };
+        if (s === "stage2") return {
+          altitude: Math.min(prev.altitude + Math.random() * 2200 + 1800, 200000),
+          velocity: Math.min(prev.velocity + Math.random() * 700 + 700, 27000),
+          acceleration: a,
+        };
         return {
-          altitude: Math.min(prev.altitude + altInc, stage === "stage3" ? 250000 : 180000),
-          velocity: Math.min(prev.velocity + velInc, stage === "stage3" ? 28000 : 22000),
-          acceleration: acc,
-          statusText: status,
+          altitude: Math.min(prev.altitude + 150, 250000),
+          velocity: 28000,
+          acceleration: 0.0,
         };
       });
-    }, 100);
+    }, 80);
 
-    // Sequence Milestones
-    // T+4.2s - Stage 1 separation announcement
-    const timerSeparationAlert = setTimeout(() => {
-      speakMissionControl("Booster depletion. Standing by for stage one separation.");
-    }, 4200);
+    // ── T+0.8s  Throttle up / Max-Q warning ──────────────────────────────
+    const tA = setTimeout(() => {
+      speak("Throttle up. Approaching maximum aerodynamic pressure.");
+      addLog("CMD T+0.8s: Throttle up — approaching Max Q", "cmd");
+      accelRef.current = 3.2;
+    }, 800);
 
-    // T+5.0s - Stage 1 separation
-    const timerSeparation = setTimeout(() => {
+    // ── T+1.8s  Engine throttle-down before separation ────────────────────
+    const tB = setTimeout(() => {
+      speak("Throttle down. Preparing for stage one separation.");
+      addLog("CMD T+1.8s: Throttle down — stage 1 separation imminent", "cmd");
+      accelRef.current = 1.5;
+      setStatusText("STAGE 1: THROTTLE DOWN — SEPARATION IMMINENT");
+    }, 1800);
+
+    // ── T+2.2s  Stage 1 separation command ───────────────────────────────
+    const tB2 = setTimeout(() => {
+      speak("Stage one separation command.");
+      addLog("CMD T+2.2s: Stage one separation command", "cmd");
+    }, 2200);
+
+    // ── T+2.35s Stage 1 separation voice ─────────────────────────────────
+    const tB3 = setTimeout(() => {
+      speak("Stage one separation.");
+      addLog("CMD T+2.35s: Stage 1 separation", "cmd");
+    }, 2350);
+
+    // ── T+2.5s  Stage 1 booster separation ───────────────────────────────
+    const tC = setTimeout(() => {
+      speak("Stage one separation confirmed. Stage two engine ignition.");
+      addLog("CMD T+2.5s: Stage 1 separation confirmed — stage 2 ignition", "cmd");
+      setStatusText("STAGE 2: THERMOSPHERE BURN");
       setDetachingBooster(true);
       setStage("stage2");
-      // Change audio rumble pitch to higher and cleaner
-      if (audioNodesRef.current) {
-        audioNodesRef.current.filterNode.frequency.setValueAtTime(140, audioCtxRef.current!.currentTime);
+      stageRef.current = "stage2";
+      accelRef.current = 4.5;
+      if (filterNodeRef.current && audioCtxRef.current) {
+        filterNodeRef.current.frequency.setValueAtTime(140, audioCtxRef.current.currentTime);
       }
-      setTimeout(() => {
-        speakMissionControl("Stage one separation confirmed. Stage two engine ignition.");
-      }, 500);
-    }, 5000);
+    }, 2500);
 
-    // T+9.0s - Fairing separation alert
-    const timerFairingAlert = setTimeout(() => {
-      speakMissionControl("Exosphere boundary crossed. Preparing fairing jettison.");
-    }, 9000);
+    // ── T+3.5s  Exosphere crossing ────────────────────────────────────────
+    const tD = setTimeout(() => {
+      speak("Exosphere boundary crossed. Engine throttle reducing for vacuum.");
+      addLog("CMD T+3.5s: Exosphere boundary — throttle reducing", "cmd");
+      accelRef.current = 2.8;
+      setStatusText("STAGE 2: EXOSPHERE — VACUUM THROTTLE");
+      if (filterNodeRef.current && audioCtxRef.current) {
+        filterNodeRef.current.frequency.setValueAtTime(80, audioCtxRef.current.currentTime);
+      }
+    }, 3500);
 
-    // T+9.8s - Fairing jettison
-    const timerFairing = setTimeout(() => {
+    // ── T+4.5s  Fairing jettison ──────────────────────────────────────────
+    const tE = setTimeout(() => {
+      speak("Fairing jettison confirmed. Payload lander deployed.");
+      addLog("CMD T+4.5s: Fairing split complete — lander deployed", "cmd");
+      setStatusText("STAGE 3: LANDER DEPLOYMENT");
       setFairingOpen(true);
       setStage("stage3");
-      // Muffle audio completely for exosphere vacuum
-      if (audioNodesRef.current) {
-        audioNodesRef.current.filterNode.frequency.setValueAtTime(50, audioCtxRef.current!.currentTime);
+      stageRef.current = "stage3";
+      accelRef.current = 0.0;
+      if (filterNodeRef.current && audioCtxRef.current) {
+        filterNodeRef.current.frequency.setValueAtTime(35, audioCtxRef.current.currentTime);
       }
-      setTimeout(() => {
-        speakMissionControl("Fairing separation confirmed. Orbital insertion successful.");
-      }, 500);
-    }, 9800);
+    }, 4500);
 
-    // T+13.0s - Deployment message
-    const timerWelcomeAlert = setTimeout(() => {
-      speakMissionControl("Welcome to Antony Francis Portfolio. Deploying payload capsule.");
-    }, 13000);
+    // ── T+5.5s  Orbital velocity achieved ─────────────────────────────────
+    const tF = setTimeout(() => {
+      speak("Orbital velocity achieved. Twenty eight thousand kilometers per hour.");
+      addLog("CMD T+5.5s: Orbital velocity 28,000 km/h achieved", "cmd");
+      setStatusText("STAGE 3: ORBITAL INSERTION NOMINAL");
+    }, 5500);
 
-    // T+15.5s - Transition to full website
-    const timerTransition = setTimeout(() => {
+    // ── T+6.5s  Portfolio uplink ───────────────────────────────────────────
+    const tG = setTimeout(() => {
+      speak("Payload insertion nominal. Initiating portfolio uplink.");
+      addLog("CMD T+6.5s: Payload insertion nominal — portfolio uplink active", "cmd");
+    }, 6500);
+
+    // ── T+8.0s  Transition to website ─────────────────────────────────────
+    const tH = setTimeout(() => {
+      addLog("SYS T+8.0s: Portfolio payload delivered — loading site", "sys");
+      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+      if (gainNodeRef.current && audioCtxRef.current) {
+        gainNodeRef.current.gain.linearRampToValueAtTime(0, audioCtxRef.current.currentTime + 0.5);
+      }
       onCinematicComplete();
-    }, 15500);
+    }, 8000);
 
     return () => {
-      clearInterval(telemetryInterval);
-      clearTimeout(timerSeparationAlert);
-      clearTimeout(timerSeparation);
-      clearTimeout(timerFairingAlert);
-      clearTimeout(timerFairing);
-      clearTimeout(timerWelcomeAlert);
-      clearTimeout(timerTransition);
+      clearInterval(ticker);
+      clearTimeout(tA); clearTimeout(tB); clearTimeout(tB2); clearTimeout(tB3); clearTimeout(tC); clearTimeout(tD);
+      clearTimeout(tE); clearTimeout(tF); clearTimeout(tG); clearTimeout(tH);
+      try { if (audioCtxRef.current) audioCtxRef.current.close(); } catch (e) {}
+      if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     };
-  }, [stage]);
+  }, []); // ← runs ONCE only — no stage dependency
+
+  const toggleMute = () => {
+    const next = !isMuted;
+    setIsMuted(next);
+    isMutedRef.current = next;
+    if (gainNodeRef.current && audioCtxRef.current) {
+      gainNodeRef.current.gain.linearRampToValueAtTime(
+        next ? 0 : (stageRef.current === "stage3" ? 0.05 : stageRef.current === "stage2" ? 0.35 : 0.45),
+        audioCtxRef.current.currentTime + 0.3
+      );
+    }
+    if (next && typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
+  };
 
   return (
-    <div className="fixed inset-0 z-[99999] bg-[#050507] text-white flex flex-col justify-between overflow-hidden p-6 select-none font-mono">
-      {/* Background Exosphere / Starfield Shift */}
-      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        {/* Dynamic Space Background based on Flight Phase */}
-        <motion.div
-          animate={{
-            background: stage === "stage1" 
-              ? "radial-gradient(circle at center bottom, #111116 0%, #050507 70%)"
-              : stage === "stage2"
-              ? "radial-gradient(circle at center bottom, #0a1020 0%, #050507 80%)"
-              : "radial-gradient(circle at center bottom, #070814 0%, #050507 100%)"
-          }}
-          transition={{ duration: 4 }}
-          className="absolute inset-0"
-        />
+    <div className="fixed inset-0 z-[99999] text-white flex flex-col overflow-hidden select-none font-mono">
+      {/* ── Solid Pure Black Background ─────────────────────────────── */}
+      <div className="absolute inset-0 z-0 bg-black pointer-events-none" />
 
-        {/* Animated rising stars/particles during launch */}
-        <AnimatePresence>
-          {stage !== "stage3" && (
-            <div className="absolute inset-0">
-              {Array.from({ length: 40 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ 
-                    x: typeof window !== "undefined" ? Math.random() * window.innerWidth : 1000, 
-                    y: typeof window !== "undefined" ? window.innerHeight + 50 : 800, 
-                    scale: Math.random() * 1.5 + 0.5,
-                    opacity: Math.random() * 0.7 + 0.3 
-                  }}
-                  animate={{ 
-                    y: -100 
-                  }}
-                  transition={{ 
-                    duration: stage === "stage1" ? Math.random() * 1.5 + 1.2 : Math.random() * 0.7 + 0.4,
-                    repeat: Infinity,
-                    ease: "linear"
-                  }}
-                  className="absolute w-[2px] h-[15px] bg-white/40 rounded-full"
-                />
-              ))}
-            </div>
-          )}
-        </AnimatePresence>
 
-        {/* Static high altitude twinkling starfield in space */}
-        {stage !== "stage1" && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 3 }}
-            className="absolute inset-0 bg-[radial-gradient(white_1px,transparent_1px)] [background-size:32px_32px] opacity-20"
-          />
-        )}
-        
-        {/* Faux Horizon earth line fading down */}
-        {stage === "stage1" && (
-          <motion.div 
-            animate={{ y: 250, opacity: 0 }}
-            transition={{ duration: 5, ease: "easeIn" }}
-            className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-white/10 to-transparent blur-[20px]"
-          />
-        )}
-      </div>
 
-      {/* Cybernetic Tech Grid Fills */}
-      <div className="absolute inset-0 bg-[radial-gradient(#8f8f7c_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none z-0" />
-
-      {/* HEADER HUD BAR */}
-      <div className="w-full flex justify-between items-center z-10 border-b border-white/10 pb-4 bg-gradient-to-b from-black/50 to-transparent backdrop-blur-sm px-4">
-        <div className="flex items-center space-x-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping" />
-          <span className="text-xs md:text-sm font-black tracking-widest text-[#8f8f7c]">LAUNCH MISSION PROTOCOL</span>
+      {/* ── Header bar ── */}
+      <div className="relative z-10 flex items-center justify-between px-5 py-3 border-b border-white/10 bg-black/50 backdrop-blur-md shrink-0">
+        <div className="flex items-center gap-3">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_#34d399] animate-pulse" />
+          <span className="text-xs font-bold tracking-widest text-white/70">MISSION CONTROL — AF-CONVERTIX LANDER</span>
         </div>
-        
-        {/* Telemetry Status Indicator */}
-        <div className="hidden md:flex items-center space-x-6 text-[11px] text-white/50">
-          <div>VEHICLE: <span className="text-white font-bold">AF-CONVERTIX HEAVY</span></div>
-          <div>EST. ORBIT: <span className="text-white font-bold">LEO (250 KM)</span></div>
-          <div>PAYLOAD: <span className="text-white font-bold">PORTFOLIO V1</span></div>
+        <div className="hidden md:flex items-center gap-6 text-[10px] text-white/40 font-bold tracking-wider">
+          <span>TARGET: <span className="text-white">ANTONY PORTFOLIO</span></span>
+          <span>STATUS: <span className="text-emerald-400">{statusText}</span></span>
         </div>
-
-        {/* Sound Toggle */}
-        <button 
-          onClick={() => setIsMuted(!isMuted)} 
-          className="text-xs border border-white/20 px-3 py-1.5 rounded-full hover:bg-white hover:text-black transition-all cursor-pointer font-bold tracking-widest"
+        <button
+          onClick={toggleMute}
+          className="text-[10px] border border-white/15 px-3 py-1 rounded hover:bg-white hover:text-black transition-all font-bold tracking-wider"
         >
-          {isMuted ? "UNMUTE HUD AUDIO" : "MUTE HUD AUDIO"}
+          {isMuted ? "UNMUTE" : "MUTE"}
         </button>
       </div>
 
-      {/* MAIN ROCKET FLIGHT AREA */}
-      <div className="flex-1 w-full flex items-center justify-center relative z-10">
-        
-        {/* Launchpad Rumble / Shake Container */}
-        <motion.div 
-          animate={stage === "stage1" ? {
-            x: [0, -2, 2, -1, 1, -2, 2, 0],
-            y: [0, 1, -2, 1, -1, 2, -1, 0]
-          } : stage === "stage2" ? {
-            x: [0, -0.5, 0.5, -0.5, 0],
-            y: [0, 0.5, -0.5, 0.5, 0]
-          } : {}}
-          transition={{
-            repeat: Infinity,
-            duration: 0.12,
-            ease: "easeInOut"
-          }}
-          className="relative flex flex-col items-center"
-        >
-          {/* Billowing exhaust clouds at launchpad stage 1 */}
-          {stage === "stage1" && (
-            <div className="absolute -bottom-24 w-80 h-32 flex justify-center pointer-events-none">
-              {Array.from({ length: 15 }).map((_, i) => (
-                <motion.div
-                  key={i}
-                  animate={{
-                    scale: [1, 2.5, 3.5],
-                    opacity: [0.8, 0.5, 0],
-                    x: [0, (i - 7) * 20 + (Math.random() * 40 - 20)],
-                    y: [0, Math.random() * 60 + 40]
-                  }}
-                  transition={{
-                    duration: Math.random() * 0.8 + 0.6,
-                    repeat: Infinity,
-                    ease: "easeOut"
-                  }}
-                  className="absolute w-12 h-12 bg-gradient-to-t from-orange-600 via-gray-600 to-gray-800 rounded-full blur-[8px]"
-                />
+      {/* ── Main three-pane layout ── */}
+      <div className="relative z-10 flex-1 flex flex-col lg:flex-row gap-3 p-4 overflow-hidden min-h-0">
+
+        {/* Left — Systems */}
+        <div className="w-full lg:w-56 shrink-0 bg-black/50 border border-white/10 rounded-lg p-3 flex flex-col gap-3">
+          <div className="text-[10px] font-bold text-white/40 tracking-widest border-b border-white/10 pb-2">SYSTEMS</div>
+          {[
+            ["GUIDANCE", "AUTO VECTOR"],
+            ["NOZZLE THRUST", "100% PRESSURE"],
+            ["TELEMETRY", "SYNCHRONIZED"],
+            ["PAYLOAD LOCK", "SECURED"],
+          ].map(([k, v]) => (
+            <div key={k} className="flex justify-between items-center bg-white/5 px-2 py-1.5 rounded border border-white/5 text-[10px]">
+              <span className="text-white/45">{k}</span>
+              <span className="text-emerald-400 font-bold">{v}</span>
+            </div>
+          ))}
+
+          <div className="mt-auto pt-3 border-t border-white/10">
+            <div className="text-[10px] font-bold text-white/40 tracking-widest mb-2">FLIGHT MILESTONES</div>
+            <div className="space-y-1.5">
+              {[
+                ["STAGE 1 SEPARATION", stage !== "stage1"],
+                ["FAIRING JETTISON", stage === "stage3"],
+                ["LANDER DEPLOYED", fairingOpen],
+              ].map(([label, done]) => (
+                <div key={label as string} className="flex items-center gap-2 text-[10px]">
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${done ? "bg-emerald-500 shadow-[0_0_6px_#10b981]" : "bg-white/15 animate-pulse"}`} />
+                  <span className={done ? "text-emerald-400 font-bold" : "text-white/35"}>{label as string}</span>
+                </div>
               ))}
             </div>
-          )}
-
-          {/* SVG ROCKET VEHICLE */}
-          <div className="flex flex-col items-center select-none">
-            <RocketSVG stage={stage} detachingBooster={detachingBooster} fairingOpen={fairingOpen} />
-          </div>
-        </motion.div>
-        
-        {/* Floating Flight Alerts Overlay */}
-        <div className="absolute top-10 left-10 hidden lg:block max-w-xs space-y-4">
-          <div className="bg-white/5 border border-white/10 rounded-lg p-3 backdrop-blur-md">
-            <div className="text-[10px] text-white/40 uppercase font-black">Flight Computer Diagnostic</div>
-            <div className="text-xs text-emerald-400 font-bold mt-1">✓ Lox tank pressure: Nominal</div>
-            <div className="text-xs text-emerald-400 font-bold">✓ Avionics linkage: Locked</div>
-            <div className="text-xs text-emerald-400 font-bold">✓ Guidance vector: Auto-pilot</div>
           </div>
         </div>
 
-        {/* Telemetry Stage Indicators (Right side overlay) */}
-        <div className="absolute right-6 top-10 space-y-3 hidden sm:block">
-          <div className="text-[10px] text-white/40 uppercase font-black mb-1">Flight milestones</div>
-          
-          <div className="flex items-center space-x-3">
-            <span className={`w-3 h-3 rounded-full border ${stage !== "stage1" ? "bg-emerald-500 border-emerald-400 shadow-[0_0_8px_emerald]" : "bg-white/10 border-white/20 animate-pulse"}`} />
-            <span className={`text-xs font-bold ${stage !== "stage1" ? "text-emerald-400" : "text-white/60"}`}>STAGE 1 SEPARATION</span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <span className={`w-3 h-3 rounded-full border ${stage === "stage3" ? "bg-emerald-500 border-emerald-400 shadow-[0_0_8px_emerald]" : detachingBooster ? "bg-white/10 border-white/20 animate-pulse" : "bg-black/40 border-white/10"}`} />
-            <span className={`text-xs font-bold ${stage === "stage3" ? "text-emerald-400" : detachingBooster ? "text-white/60" : "text-white/20"}`}>FAIRING DEPLOYMENT</span>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <span className={`w-3 h-3 rounded-full border ${fairingOpen ? "bg-emerald-500 border-emerald-400 shadow-[0_0_8px_emerald]" : "bg-black/40 border-white/10"}`} />
-            <span className={`text-xs font-bold ${fairingOpen ? "text-emerald-400" : "text-white/20"}`}>ORBITAL PAYLOAD LOADED</span>
-          </div>
-        </div>
-      </div>
-
-      {/* DASHBOARD TELEMETRY FOOTER HUD */}
-      <div className="w-full bg-white/5 border border-white/10 rounded-xl p-4 md:p-6 font-mono z-10 backdrop-blur-md">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-          
-          {/* ALTITUDE DISPLAY */}
-          <div className="border-r border-white/10 pr-2">
-            <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">ALTITUDE</div>
-            <div className="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8f8f7c]">
-              {(telemetry.altitude / 1000).toFixed(2)} <span className="text-xs text-white/50">KM</span>
-            </div>
-            <div className="w-full bg-white/10 h-1 rounded-full mt-2 overflow-hidden">
-              <motion.div 
-                className="bg-[#8f8f7c] h-full"
-                animate={{ width: `${(telemetry.altitude / 250000) * 100}%` }}
-                transition={{ duration: 0.1 }}
-              />
-            </div>
-          </div>
-
-          {/* VELOCITY DISPLAY */}
-          <div className="md:border-r border-white/10 pr-2">
-            <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">VELOCITY</div>
-            <div className="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8f8f7c]">
-              {telemetry.velocity.toLocaleString()} <span className="text-xs text-white/50">KM/H</span>
-            </div>
-            <div className="w-full bg-white/10 h-1 rounded-full mt-2 overflow-hidden">
-              <motion.div 
-                className="bg-[#8f8f7c] h-full"
-                animate={{ width: `${(telemetry.velocity / 28000) * 100}%` }}
-                transition={{ duration: 0.1 }}
-              />
-            </div>
-          </div>
-
-          {/* ACCELERATION DISPLAY */}
-          <div className="border-r border-white/10 pr-2 pt-2 md:pt-0">
-            <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">ACCELERATION</div>
-            <div className="text-lg md:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8f8f7c]">
-              {telemetry.acceleration.toFixed(1)} <span className="text-xs text-white/50">G</span>
-            </div>
-            <div className="w-full bg-white/10 h-1 rounded-full mt-2 overflow-hidden">
-              <motion.div 
-                className="bg-[#8f8f7c] h-full"
-                animate={{ width: `${(telemetry.acceleration / 5) * 100}%` }}
-                transition={{ duration: 0.1 }}
-              />
-            </div>
-          </div>
-
-          {/* TELEMETRY UPLINK LOGS */}
-          <div className="pt-2 md:pt-0 pl-2">
-            <div className="text-[10px] text-white/40 uppercase tracking-widest mb-1">FLIGHT TELEMETRY STATUS</div>
-            <div className="text-[11px] md:text-xs text-white font-bold leading-tight uppercase transition-all tracking-wide animate-pulse">
-              {telemetry.statusText}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// SVG Rocket Component Definition
-const RocketSVG: React.FC<{ stage: string; detachingBooster: boolean; fairingOpen: boolean }> = ({ stage, detachingBooster, fairingOpen }) => {
-  return (
-    <div className="relative w-24 h-72 flex flex-col items-center">
-      {/* Fairing / Payload Capsule */}
-      {!fairingOpen ? (
-        <motion.div className="w-10 h-16 bg-gradient-to-b from-[#e5e5e0] to-[#c5c5c0] rounded-t-full border border-white/20 relative flex items-center justify-center">
-          {/* Payload inside, revealed later */}
-          <div className="absolute w-2 h-8 bg-[#8f8f7c]/50 rounded-full animate-pulse" />
-        </motion.div>
-      ) : (
-        /* Fairing opened / split */
-        <div className="w-16 h-16 relative flex justify-between">
-          <motion.div 
-            initial={{ rotate: -30, x: -10, opacity: 1 }}
-            animate={{ x: -75, y: 55, rotate: -85, opacity: 0 }}
-            transition={{ duration: 2.2, ease: "easeOut" }}
-            className="w-5 h-16 bg-[#c5c5c0] rounded-tl-full border border-white/20"
-          />
-          {/* Floating Payload Satellite */}
-          <motion.div 
-            initial={{ scale: 0.8, y: 15 }}
-            animate={{ scale: 1.3, y: -25, rotate: 180 }}
-            transition={{ duration: 4.5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
-            className="absolute left-1/2 -translate-x-1/2 w-8 h-12 flex flex-col items-center justify-center"
+        {/* Center — Rocket visualizer */}
+        <div className="flex-1 bg-black/25 border border-white/10 rounded-lg flex items-center justify-center overflow-hidden relative min-h-[320px]">
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-0" />
+          <motion.div
+            animate={stage === "stage1" ? { x: [0,-1,1,-1,0], y: [0,.4,-.4,.4,0] }
+              : stage === "stage2" ? { x: [0,-.3,.3,0], y: [0,.2,-.2,0] } : {}}
+            transition={{ repeat: Infinity, duration: 0.09 }}
+            className="z-10"
           >
-            {/* Satellite core */}
-            <div className="w-5 h-7 bg-cyan-400 border border-cyan-300 rounded-sm shadow-[0_0_20px_#06b6d4] flex items-center justify-center">
-              <div className="w-2.5 h-2.5 bg-white rounded-full animate-ping" />
-            </div>
-            {/* Deploying Solar panels */}
-            <motion.div 
-              initial={{ scaleX: 0 }}
-              animate={{ scaleX: 1 }}
-              transition={{ delay: 0.8, duration: 1.8, ease: "easeOut" }}
-              className="absolute w-20 h-2 bg-gradient-to-r from-blue-600 via-transparent to-blue-600 border border-blue-400 rounded-sm"
-            />
+            {/* Exhaust cloud at launch */}
+            {stage === "stage1" && (
+              <div className="absolute -bottom-16 w-40 h-14 flex justify-center pointer-events-none">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <motion.div key={i}
+                    animate={{ scale: [1,2.5,3.5], opacity: [0.6,0.3,0], x: [0,(i-2.5)*14], y: [0,35] }}
+                    transition={{ duration: Math.random()*0.35+0.25, repeat: Infinity, ease: "easeOut" }}
+                    className="absolute w-8 h-8 bg-gradient-to-t from-orange-500 via-gray-600 to-transparent rounded-full blur-md"
+                  />
+                ))}
+              </div>
+            )}
+            <RocketSVG stage={stage} detachingBooster={detachingBooster} fairingOpen={fairingOpen} />
           </motion.div>
-          <motion.div 
-            initial={{ rotate: 30, x: 10, opacity: 1 }}
-            animate={{ x: 75, y: 55, rotate: 85, opacity: 0 }}
-            transition={{ duration: 2.2, ease: "easeOut" }}
-            className="w-5 h-16 bg-[#c5c5c0] rounded-tr-full border border-white/20"
-          />
         </div>
-      )}
 
-      {/* Stage 2 Core */}
-      <div className="w-10 h-20 bg-gradient-to-b from-[#b0b0a8] to-[#909088] border-x border-white/10 relative flex items-center justify-center overflow-hidden">
-        {/* Glowing decal lines */}
-        <div className="absolute top-4 left-0 right-0 h-0.5 bg-cyan-500/50 shadow-[0_0_8px_cyan]" />
-        <div className="absolute bottom-4 left-0 right-0 h-0.5 bg-cyan-500/50 shadow-[0_0_8px_cyan]" />
-        <span className="text-[7px] font-black tracking-widest text-white/50 rotate-90 whitespace-nowrap">AF CONVERTIX</span>
+        {/* Right — Command console */}
+        <div className="w-full lg:w-64 shrink-0 bg-black/50 border border-white/10 rounded-lg p-3 flex flex-col min-h-0">
+          <div className="text-[10px] font-bold text-white/40 tracking-widest border-b border-white/10 pb-2 mb-2 shrink-0">COMMAND CONSOLE</div>
+          <div className="flex-1 overflow-y-auto space-y-1.5 pr-0.5 min-h-0">
+            <AnimatePresence>
+              {logs.map((log) => (
+                <motion.div
+                  key={log.id}
+                  initial={{ opacity: 0, x: -6 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25 }}
+                  className={`text-[10px] leading-snug px-2 py-1.5 rounded border ${
+                    log.type === "sys"
+                      ? "text-cyan-400 bg-cyan-950/25 border-cyan-800/20"
+                      : "text-emerald-400 bg-emerald-950/20 border-emerald-800/20"
+                  }`}
+                >
+                  {log.text}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+
       </div>
 
-      {/* Interstage Ring & Engine 2 Plume */}
-      {stage !== "stage1" && !fairingOpen && (
-        <motion.div 
-          initial={{ scaleY: 0 }}
-          animate={{ scaleY: [1, 1.25, 1] }}
-          transition={{ repeat: Infinity, duration: 0.12 }}
-          className="absolute top-[148px] w-4 h-14 bg-gradient-to-b from-cyan-400 via-cyan-500 to-transparent rounded-full blur-[2px] shadow-[0_0_20px_#06b6d4] origin-top"
-        />
-      )}
-
-      {/* Stage 1 Core (Deploys and falls away) */}
-      {!detachingBooster ? (
-        <div className="w-12 h-24 bg-gradient-to-b from-[#8f8f7c] to-[#44443a] border border-white/10 rounded-b-sm relative flex flex-col items-center">
-          {/* Grid fins / stabilizers */}
-          <div className="absolute -left-2 top-2 w-2 h-4 bg-white/20 border border-white/10 rounded-sm" />
-          <div className="absolute -right-2 top-2 w-2 h-4 bg-white/20 border border-white/10 rounded-sm" />
-          {/* Main Engines fire */}
-          {stage === "stage1" && (
-            <motion.div 
-              animate={{ scaleY: [1, 1.25, 0.9, 1.15] }}
-              transition={{ repeat: Infinity, duration: 0.08 }}
-              className="absolute -bottom-20 w-8 h-24 bg-gradient-to-b from-orange-500 via-red-500 to-transparent rounded-full origin-top blur-[2px] shadow-[0_0_25px_orange]"
-            />
-          )}
-        </div>
-      ) : (
-        /* Detaching booster falling out of view */
-        <motion.div 
-          initial={{ y: 0, opacity: 1, rotate: 0 }}
-          animate={{ y: 350, opacity: 0, rotate: 18 }}
-          transition={{ duration: 3.5, ease: "easeIn" }}
-          className="w-12 h-24 bg-gradient-to-b from-[#8f8f7c] to-[#44443a] border border-white/10 rounded-b-sm relative"
-        >
-          {/* Smoking engines since they are cut off */}
-          <div className="absolute -bottom-4 left-4 w-4 h-8 bg-gray-500/20 blur-[5px] rounded-full animate-pulse" />
-        </motion.div>
-      )}
+      {/* ── Footer telemetry bar ── */}
+      <div className="relative z-10 shrink-0 bg-black/60 border-t border-white/10 px-5 py-3 grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          ["ALTITUDE", `${(telemetry.altitude / 1000).toFixed(2)}`, "KM", telemetry.altitude / 250000],
+          ["VELOCITY", `${telemetry.velocity.toLocaleString()}`, "KM/H", telemetry.velocity / 28000],
+          ["G-FORCE", `${telemetry.acceleration.toFixed(1)}`, "G", telemetry.acceleration / 5],
+          null,
+        ].map((item, idx) =>
+          item ? (
+            <div key={idx} className={`${idx < 3 ? "border-r border-white/10 pr-3" : ""}`}>
+              <div className="text-[9px] text-white/35 tracking-widest mb-1">{item[0] as string}</div>
+              <div className="text-lg font-bold text-white leading-none">
+                {item[1] as string} <span className="text-[10px] text-white/30">{item[2] as string}</span>
+              </div>
+              <div className="w-full h-[2px] bg-white/5 mt-2 rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-emerald-500 to-cyan-400"
+                  animate={{ width: `${Math.min((item[3] as number) * 100, 100)}%` }}
+                  transition={{ duration: 0.08 }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div key={idx} className="flex flex-col justify-center pl-2">
+              <div className="text-[9px] text-white/35 tracking-widest mb-1">SEQUENCE STATUS</div>
+              <div className="text-[11px] font-bold text-emerald-400 animate-pulse uppercase">{statusText}</div>
+            </div>
+          )
+        )}
+      </div>
     </div>
   );
 };
+
+// ── Realistic SVG Rocket ──
+const RocketSVG: React.FC<{ stage: string; detachingBooster: boolean; fairingOpen: boolean }> = ({
+  stage, detachingBooster, fairingOpen,
+}) => (
+  <div className="relative w-32 h-80 flex flex-col items-center">
+
+    {/* Nosecone / Fairing */}
+    {!fairingOpen ? (
+      <div className="w-12 h-20 flex flex-col items-center z-20">
+        <div className="w-2 h-2.5 bg-zinc-800 rounded-t-full" />
+        <div className="w-10 h-[4.5rem] bg-gradient-to-b from-zinc-200 via-zinc-300 to-zinc-400 border border-white/20 rounded-t-[2rem] relative overflow-hidden flex items-center justify-center">
+          <div className="absolute top-3 w-full h-px bg-red-500/50" />
+          <div className="absolute left-1/2 w-px h-full bg-zinc-500/20 top-0" />
+        </div>
+      </div>
+    ) : (
+      <div className="w-28 h-20 relative flex justify-between z-20">
+        <motion.div initial={{ x: 0, rotate: 0, opacity: 1 }} animate={{ x: -80, y: 70, rotate: -70, opacity: 0 }}
+          transition={{ duration: 1.6, ease: "easeOut" }}
+          className="w-5 h-[4.5rem] bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-tl-[2rem] border border-white/20" />
+
+        {/* Gold MLI Lander */}
+        <motion.div initial={{ scale: 0.85, y: 10 }} animate={{ scale: 1.2, y: -18 }}
+          transition={{ duration: 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }}
+          className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center">
+          {/* Solar wings */}
+          <motion.div initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.2, duration: 1, ease: "easeOut" }}
+            className="absolute w-24 h-4 flex justify-between">
+            {[0,1].map(i => (
+              <div key={i} className={`w-9 h-4 ${i===0?"bg-gradient-to-r":"bg-gradient-to-l"} from-blue-700 via-blue-900 to-cyan-800 border border-cyan-400/60 rounded-sm overflow-hidden shadow-[0_0_8px_rgba(6,182,212,0.35)]`}>
+                <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_5px,#475569_6px)] opacity-40" />
+              </div>
+            ))}
+          </motion.div>
+          {/* Body */}
+          <div className="w-7 h-9 bg-gradient-to-b from-yellow-400 via-yellow-600 to-yellow-800 border border-yellow-300/50 rounded shadow-[0_0_14px_rgba(234,179,8,0.4)] flex flex-col items-center justify-between p-1 z-10">
+            <div className="w-3.5 h-3.5 rounded-full bg-zinc-200 border border-zinc-400 flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping" />
+            </div>
+            <div className="w-2.5 h-1.5 bg-black border border-zinc-600 rounded-sm" />
+          </div>
+          {/* Landing legs */}
+          <div className="absolute -bottom-1 w-10 h-3 flex justify-between px-1">
+            <div className="w-1 h-3 bg-zinc-400 origin-top rotate-45 rounded-sm" />
+            <div className="w-1 h-3 bg-zinc-400 origin-top -rotate-45 rounded-sm" />
+          </div>
+        </motion.div>
+
+        <motion.div initial={{ x: 0, rotate: 0, opacity: 1 }} animate={{ x: 80, y: 70, rotate: 70, opacity: 0 }}
+          transition={{ duration: 1.6, ease: "easeOut" }}
+          className="w-5 h-[4.5rem] bg-gradient-to-b from-zinc-200 to-zinc-400 rounded-tr-[2rem] border border-white/20" />
+      </div>
+    )}
+
+    {/* Stage 2 tank */}
+    <div className="w-10 h-24 bg-gradient-to-b from-zinc-300 via-zinc-200 to-zinc-500 border-x border-white/15 relative flex items-center justify-center z-10 shadow-lg overflow-hidden">
+      <div className="absolute top-0 w-full h-1 bg-zinc-600/50" />
+      <span className="text-[7px] font-black tracking-widest text-zinc-700 rotate-90 whitespace-nowrap">AF CONVERTIX</span>
+      <div className="absolute bottom-0 w-full h-1 bg-zinc-600/50" />
+    </div>
+
+    {/* Stage 2 vacuum nozzle & plume */}
+    {stage !== "stage1" && !fairingOpen && (
+      <div className="relative w-6 h-4 flex flex-col items-center z-10">
+        <div className="w-4 h-3 bg-gradient-to-b from-amber-600 to-zinc-900 rounded-b border-x border-amber-700" />
+        <motion.div animate={{ scaleY: [1,1.3,0.9,1.2] }} transition={{ repeat: Infinity, duration: 0.09 }}
+          className="absolute top-2 w-3 h-16 bg-gradient-to-b from-cyan-400 via-sky-500 to-transparent rounded-full blur-[2px] shadow-[0_0_18px_#06b6d4] origin-top" />
+      </div>
+    )}
+
+    {/* Stage 1 booster */}
+    {!detachingBooster ? (
+      <div className="w-12 h-28 bg-gradient-to-b from-zinc-200 via-zinc-400 to-zinc-600 border border-white/10 rounded-b relative flex flex-col items-center z-10 shadow-2xl">
+        {/* Grid fins */}
+        {[-1,1].map((dir) => (
+          <div key={dir} className={`absolute ${dir===-1?"-left-2.5":"-right-2.5"} top-2 w-2.5 h-5 bg-zinc-700 border border-zinc-500 rounded-sm ${dir===1?"-skew-y-3":"skew-y-3"} flex flex-col justify-evenly overflow-hidden`}>
+            {[0,1,2].map(l => <div key={l} className="w-full h-px bg-zinc-500" />)}
+          </div>
+        ))}
+        {/* Nozzle ring */}
+        <div className="absolute bottom-2 w-full h-px bg-red-500/60" />
+        {/* Three engine bells */}
+        <div className="absolute -bottom-1.5 w-10 flex justify-between px-0.5">
+          {[0,1,2].map(i => (
+            <div key={i} className={`${i===1?"w-4":"w-2.5"} h-3 bg-gradient-to-b from-zinc-700 to-zinc-900 border border-zinc-800 rounded-b-sm`} />
+          ))}
+        </div>
+        {/* Flame plume */}
+        {stage === "stage1" && (
+          <motion.div animate={{ scaleY: [1,1.2,0.9,1.15] }} transition={{ repeat: Infinity, duration: 0.08 }}
+            className="absolute -bottom-24 w-7 h-24 bg-gradient-to-b from-orange-500 via-red-500 to-transparent rounded-full origin-top blur-[2px] shadow-[0_0_28px_orange]" />
+        )}
+      </div>
+    ) : (
+      <motion.div initial={{ y:0, opacity:1, rotate:0 }} animate={{ y:300, opacity:0, rotate:20 }}
+        transition={{ duration: 2, ease:"easeIn" }}
+        className="w-12 h-28 bg-gradient-to-b from-zinc-200 via-zinc-400 to-zinc-600 border border-white/10 rounded-b relative z-0">
+        <div className="absolute -bottom-4 left-3 w-6 h-8 bg-gray-400/15 blur-md rounded-full animate-pulse" />
+      </motion.div>
+    )}
+
+  </div>
+);

@@ -2,18 +2,15 @@
 
 import React, { useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
-import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
 import Projects from "@/components/Projects";
 import AuditCTA from "@/components/AuditCTA";
 import Contact from "@/components/Contact";
 import Footer from "@/components/Footer";
-import AssessmentModal from "@/components/AssessmentModal";
 
 export default function Home() {
   const [selectedService, setSelectedService] = useState("");
-  const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
   const { scrollYProgress } = useScroll();
   const scaleX = useSpring(scrollYProgress, {
     stiffness: 100,
@@ -36,16 +33,13 @@ export default function Home() {
       </div>
       
       <div className="relative z-10">
-        <Navbar onOpenAssessment={() => setIsAssessmentOpen(true)} />
         <Hero />
         <About />
         <Projects />
-        <AuditCTA setSelectedService={setSelectedService} onOpenAssessment={() => setIsAssessmentOpen(true)} />
+        <AuditCTA setSelectedService={setSelectedService} onOpenAssessment={() => window.dispatchEvent(new Event("openAssessmentModal"))} />
         <Contact selectedService={selectedService} setSelectedService={setSelectedService} />
         <Footer />
       </div>
-
-      <AssessmentModal isOpen={isAssessmentOpen} onClose={() => setIsAssessmentOpen(false)} />
     </main>
   );
 }

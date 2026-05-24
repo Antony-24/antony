@@ -4,16 +4,17 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface SpacePreloaderProps {
+  isAssetsReady?: boolean;
+  onLaunchStart?: () => void;
   onLaunchComplete?: () => void;
 }
 
-const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => {
+const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, onLaunchStart, onLaunchComplete }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [count, setCount] = useState<number | null>(null);
   const [statusText, setStatusText] = useState("COSMIC UPLINK: OFFLINE");
   const [isVisible, setIsVisible] = useState(true);
   const [clientIp, setClientIp] = useState("");
-  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   // Fetch client IP on mount for custom prelaunch launchphrase
   useEffect(() => {
@@ -29,162 +30,157 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
       });
   }, []);
 
-  // Pre-load and listen to SpeechSynthesis voices
-  useEffect(() => {
-    if (typeof window === "undefined" || !window.speechSynthesis) return;
-
-    const loadVoices = () => {
-      const allVoices = window.speechSynthesis.getVoices();
-      if (allVoices.length > 0) {
-        setVoices(allVoices);
-        console.log("SpeechSynthesis voices loaded. Total count:", allVoices.length);
-      }
-    };
-
-    loadVoices();
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
-      window.speechSynthesis.onvoiceschanged = loadVoices;
-    }
-  }, []);
-
-  // Audio synthesis helper for authentic astronaut radio chirps
-  const playRadioChirp = (frequencyStart: number, frequencyEnd: number, duration: number, volume: number) => {
+  const playCountdownBeep = (isFinal = false) => {
+    if (typeof window === "undefined") return;
     try {
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const osc = ctx.createOscillator();
+      const gainNode = ctx.createGain();
       
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
+      osc.connect(gainNode);
+      gainNode.connect(ctx.destination);
       
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(frequencyStart, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(frequencyEnd, audioCtx.currentTime + duration);
-      
-      gain.gain.setValueAtTime(volume, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-      
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
-    } catch (e) {
-      // Audio context inactive
-    }
+      if (isFinal) {
+        // Normal rocket engine roar/rumble using lowpass filtered white noise
+        const bufSize = 1.8 * ctx.sampleRate;
+        const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+        const noise = ctx.createBufferSource();
+        noise.buffer = buf;
+        
+        const filter = ctx.createBiquadFilter();
+        filter.type = "lowpass";
+        filter.frequency.setValueAtTime(120, ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 1.6);
+        
+        const noiseGain = ctx.createGain();
+        noiseGain.gain.setValueAtTime(0.0, ctx.currentTime);
+        noiseGain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.1);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+        
+        // Add a low-frequency hum/organ element to give it weight
+        const hum = ctx.createOscillator();
+        hum.type = "sawtooth";
+        hum.frequency.setValueAtTime(55, ctx.currentTime);
+        
+        const humFilter = ctx.createBiquadFilter();
+        humFilter.type = "lowpass";
+        humFilter.frequency.setValueAtTime(80, ctx.currentTime);
+        
+        const humGain = ctx.createGain();
+        humGain.gain.setValueAtTime(0.0, ctx.currentTime);
+        humGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.15);
+        humGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+        
+        noise.connect(filter);
+        filter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+        
+        hum.connect(humFilter);
+        humFilter.connect(humGain);
+        humGain.connect(ctx.destination);
+        
+        noise.start();
+        hum.start();
+        
+        noise.stop(ctx.currentTime + 1.8);
+        hum.stop(ctx.currentTime + 1.8);
+      } else {
+        // High-pitched cyber pulse tick
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(1000, ctx.currentTime);
+        
+        gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.2);
+      }
+    } catch (e) {}
   };
 
-  // Speaks commands using the Web Speech Synthesis API
   const speakText = (text: string) => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    
-    window.speechSynthesis.cancel(); // Terminate any active speech
-    
-    // Play mic key-up radio chirp
-    playRadioChirp(800, 1200, 0.08, 0.04);
-    
-    setTimeout(() => {
+    try {
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.volume = 1.0;
-      utterance.rate = 0.98; // Natural, crisp cockpit speaking speed
+      utterance.rate = 1.0;
+      utterance.pitch = 0.85; // cyber-announcer pitch
       
-      // Get current voices from speechSynthesis or state
-      const currentVoices = window.speechSynthesis.getVoices().length > 0 
-        ? window.speechSynthesis.getVoices() 
-        : voices;
-
-      const englishVoices = currentVoices.filter(
-        (v) => v.lang.includes("en-US") || v.lang.includes("en-GB") || v.lang.startsWith("en")
-      );
-      
-      // Try to find a high-quality male voice
-      const maleVoice = englishVoices.find((v) => {
-        const name = v.name.toLowerCase();
-        return (
-          name.includes("male") ||
-          name.includes("david") ||
-          name.includes("alex") ||
-          name.includes("daniel") ||
-          name.includes("oliver") ||
-          name.includes("fred") ||
-          name.includes("rishi") ||
-          name.includes("google us english male") ||
-          name.includes("microsoft david")
-        );
+      const voices = window.speechSynthesis.getVoices();
+      const en = voices.filter((v) => v.lang.startsWith("en"));
+      const male = en.find((v) => {
+        const n = v.name.toLowerCase();
+        return n.includes("male") || n.includes("david") || n.includes("alex") || n.includes("daniel") || n.includes("fred") || n.includes("oliver") || n.includes("rishi");
       });
-      
-      const preferredVoice = maleVoice || englishVoices.find(
-        (v) => v.lang.includes("en-US") || v.lang.includes("en-GB")
-      );
-      
-      if (preferredVoice) {
-        utterance.voice = preferredVoice;
-        // If it's a fallback female voice, make the pitch even deeper to sound masculine
-        const isMale = preferredVoice.name.toLowerCase().includes("male") || 
-                       preferredVoice.name.toLowerCase().includes("david") ||
-                       preferredVoice.name.toLowerCase().includes("alex") ||
-                       preferredVoice.name.toLowerCase().includes("daniel") ||
-                       preferredVoice.name.toLowerCase().includes("oliver") ||
-                       preferredVoice.name.toLowerCase().includes("fred") ||
-                       preferredVoice.name.toLowerCase().includes("rishi");
-        utterance.pitch = isMale ? 0.85 : 0.70;
-        console.log("Selected Preloader Voice:", preferredVoice.name, "isMale:", isMale);
-      } else {
-        utterance.pitch = 0.70;
-        console.log("No preferred English voice found, using system default.");
-      }
+      const preferred = male || en.find((v) => v.lang.includes("en-US") || v.lang.includes("en-GB")) || en[0];
+      if (preferred) { utterance.voice = preferred; }
 
-      utterance.onend = () => {
-        // Play mic key-down radio chirp
-        playRadioChirp(1000, 500, 0.07, 0.03);
-      };
-      
       window.speechSynthesis.speak(utterance);
-    }, 100);
+    } catch (e) {}
   };
 
   const handleStartLaunch = () => {
+    if (onLaunchStart) {
+      onLaunchStart();
+    }
+    if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     setIsInitialized(true);
-    speakText("T-minus five");
     setStatusText("TELEMETRY LINK: ACTIVE");
     
-    // Begin countdown after T-minus five intro phrase
+    // Begin countdown quickly
     setTimeout(() => {
       setCount(5);
-    }, 1100);
+    }, 600);
   };
 
   useEffect(() => {
     if (count === null) return;
 
-    const phrases: Record<number, string> = {
-      5: "T-five",
-      4: "four",
-      3: "three",
-      2: "two",
-      1: "one",
-      0: `zero. Go For main engines On and lift off from ${clientIp || "local uplink"} to AF Convertix!`,
-    };
-
     const statusTexts: Record<number, string> = {
-      5: "LAUNCH STATE: T-5 (GUIDANCE INTERNAL)",
-      4: "LAUNCH STATE: T-4 (THRUSTERS ARMED)",
+      5: "LAUNCH STATE: T-5 (PRELAUNCH SEQUENCE)",
+      4: "LAUNCH STATE: T-4 (SYSTEMS ENGAGED)",
       3: "LAUNCH STATE: T-3 (REACTOR IGNITION)",
       2: "LAUNCH STATE: T-2 (SUPPRESSION ENGAGED)",
       1: "LAUNCH STATE: T-1 (MAIN ENGINE READY)",
-      0: `LIFT OFF FROM ${clientIp || "LOCAL IP"} TO AF CONVERTIX!`,
+      0: "BOOSTER IGNITION AND LIFT OFF TO AF CONVERTIX!",
     };
 
-    speakText(phrases[count]);
     setStatusText(statusTexts[count]);
 
+    // Trigger audio beeps and voice announcements during countdown ticks
+    if (count === 5) {
+      playCountdownBeep(false);
+      speakText("T minus five.");
+    } else if (count === 4) {
+      playCountdownBeep(false);
+      speakText("four.");
+    } else if (count === 3) {
+      playCountdownBeep(false);
+      speakText("three.");
+    } else if (count === 2) {
+      playCountdownBeep(false);
+      speakText("two.");
+    } else if (count === 1) {
+      playCountdownBeep(false);
+      speakText("one.");
+    } else if (count === 0) {
+      playCountdownBeep(true);
+      speakText("Booster ignition and lift off to a f convertix!");
+    }
+
     if (count === 0) {
-      // Trigger lazy mount of main website content immediately at T-0
       if (onLaunchComplete) {
         onLaunchComplete();
       }
 
-      // Slide up/fade out the preloader after a brief pause to allow the lift off announcement to play
       const timeout = setTimeout(() => {
         setIsVisible(false);
-      }, 4200);
+      }, 1000);
       return () => clearTimeout(timeout);
     }
 
@@ -206,8 +202,8 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
             transition: { duration: 0.8, ease: [0.76, 0, 0.24, 1] },
           }}
         >
-          {/* Cybernetic Tech Grid Fills */}
-          <div className="absolute inset-0 bg-[radial-gradient(#8f8f7c_1px,transparent_1px)] [background-size:24px_24px] opacity-5 pointer-events-none" />
+          {/* Cybernetic Tech Grid Fills without dots */}
+          <div className="absolute inset-0 bg-black/40 pointer-events-none" />
 
           <div className="w-full max-w-lg flex flex-col items-center relative z-10">
             {/* Spinning Radar Vectors */}
@@ -237,7 +233,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
                     animate={{ scale: 1, opacity: 1 }}
                     className="text-4xl md:text-5xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-white to-[#8f8f7c]"
                   >
-                    {count === 5 ? "T - 5" : count}
+                    {count === 5 ? "T-5" : count === 0 ? "BOOSTER" : count}
                   </motion.div>
                 ) : (
                   <div className="text-2xl font-bold font-mono tracking-widest text-[#8f8f7c] animate-pulse">
@@ -269,14 +265,32 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onLaunchComplete }) => 
 
             {/* Interactive Engagement Button */}
             {!isInitialized && (
-              <motion.button
-                onClick={handleStartLaunch}
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="px-8 py-3 rounded-full bg-[#44443a] text-white font-bold text-xs md:text-sm tracking-widest uppercase shadow-lg shadow-black/40 border border-white/10 cursor-pointer hover:bg-white hover:text-black hover:border-white transition-all duration-300"
-              >
-                Commence Mission Launch
-              </motion.button>
+              isAssetsReady ? (
+                <motion.button
+                  onClick={handleStartLaunch}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="px-8 py-3 rounded-full bg-[#44443a] text-white font-bold text-xs md:text-sm tracking-widest uppercase shadow-lg shadow-black/40 border border-white/10 cursor-pointer hover:bg-white hover:text-black hover:border-white transition-all duration-300"
+                >
+                  Commence Mission Launch
+                </motion.button>
+              ) : (
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-[#8f8f7c] animate-ping" />
+                    <span className="text-[10px] md:text-xs text-[#8f8f7c] tracking-widest font-black uppercase font-mono">
+                      SYNCING SYSTEM METRICS...
+                    </span>
+                  </div>
+                  <div className="w-48 h-1 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-[#44443a] to-[#8f8f7c]"
+                      animate={{ width: ["10%", "90%", "30%", "100%"] }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                  </div>
+                </div>
+              )
             )}
 
             {isInitialized && count === null && (
