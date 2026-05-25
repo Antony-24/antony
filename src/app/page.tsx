@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { motion, useScroll, useSpring } from "framer-motion";
 import Hero from "@/components/Hero";
 import About from "@/components/About";
+import Services from "@/components/Services";
 import Projects from "@/components/Projects";
 import AuditCTA from "@/components/AuditCTA";
 import Contact from "@/components/Contact";
@@ -35,6 +36,7 @@ export default function Home() {
       <div className="relative z-10">
         <Hero />
         <About />
+        <Services />
         <Projects />
         <AuditCTA setSelectedService={setSelectedService} onOpenAssessment={() => window.dispatchEvent(new Event("openAssessmentModal"))} />
         <Contact selectedService={selectedService} setSelectedService={setSelectedService} />
