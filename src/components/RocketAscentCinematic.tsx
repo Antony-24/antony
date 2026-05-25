@@ -114,7 +114,7 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
     } catch (e) {}
 
     // ── T+0.0s  Main engine ignition ──────────────────────────────────────
-    speak("Main engine start. Boosters at one hundred percent.");
+    speak("Main engine start.");
     addLog("CMD T+0s: Main engine start — boosters 100%", "cmd");
 
     // ── Telemetry ticker (reads stageRef — no stale closure) ──────────────
@@ -143,14 +143,12 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
 
     // ── T+0.8s  Throttle up / Max-Q warning ──────────────────────────────
     const tA = setTimeout(() => {
-      speak("Throttle up. Approaching maximum aerodynamic pressure.");
       addLog("CMD T+0.8s: Throttle up — approaching Max Q", "cmd");
       accelRef.current = 3.2;
     }, 800);
 
     // ── T+1.8s  Engine throttle-down before separation ────────────────────
     const tB = setTimeout(() => {
-      speak("Throttle down. Preparing for stage one separation.");
       addLog("CMD T+1.8s: Throttle down — stage 1 separation imminent", "cmd");
       accelRef.current = 1.5;
       setStatusText("STAGE 1: THROTTLE DOWN — SEPARATION IMMINENT");
@@ -158,19 +156,18 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
 
     // ── T+2.2s  Stage 1 separation command ───────────────────────────────
     const tB2 = setTimeout(() => {
-      speak("Stage one separation command.");
       addLog("CMD T+2.2s: Stage one separation command", "cmd");
     }, 2200);
 
     // ── T+2.35s Stage 1 separation voice ─────────────────────────────────
     const tB3 = setTimeout(() => {
-      speak("Stage one separation.");
+      speak("Stage 1 separation.");
       addLog("CMD T+2.35s: Stage 1 separation", "cmd");
     }, 2350);
 
     // ── T+2.5s  Stage 1 booster separation ───────────────────────────────
     const tC = setTimeout(() => {
-      speak("Stage one separation confirmed. Stage two engine ignition.");
+      speak("Stage 2 ignition.");
       addLog("CMD T+2.5s: Stage 1 separation confirmed — stage 2 ignition", "cmd");
       setStatusText("STAGE 2: THERMOSPHERE BURN");
       setDetachingBooster(true);
@@ -184,7 +181,7 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
 
     // ── T+3.5s  Exosphere crossing ────────────────────────────────────────
     const tD = setTimeout(() => {
-      speak("Exosphere boundary crossed. Engine throttle reducing for vacuum.");
+      speak("Exosphere crossed.");
       addLog("CMD T+3.5s: Exosphere boundary — throttle reducing", "cmd");
       accelRef.current = 2.8;
       setStatusText("STAGE 2: EXOSPHERE — VACUUM THROTTLE");
@@ -195,7 +192,6 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
 
     // ── T+4.5s  Fairing jettison ──────────────────────────────────────────
     const tE = setTimeout(() => {
-      speak("Fairing jettison confirmed. Payload lander deployed.");
       addLog("CMD T+4.5s: Fairing split complete — lander deployed", "cmd");
       setStatusText("STAGE 3: LANDER DEPLOYMENT");
       setFairingOpen(true);
@@ -209,14 +205,13 @@ export const RocketAscentCinematic: React.FC<RocketAscentCinematicProps> = ({ on
 
     // ── T+5.5s  Orbital velocity achieved ─────────────────────────────────
     const tF = setTimeout(() => {
-      speak("Orbital velocity achieved. Twenty eight thousand kilometers per hour.");
+      speak("Orbital velocity reached.");
       addLog("CMD T+5.5s: Orbital velocity 28,000 km/h achieved", "cmd");
       setStatusText("STAGE 3: ORBITAL INSERTION NOMINAL");
     }, 5500);
 
     // ── T+6.5s  Portfolio uplink ───────────────────────────────────────────
     const tG = setTimeout(() => {
-      speak("Payload insertion nominal. Initiating portfolio uplink.");
       addLog("CMD T+6.5s: Payload insertion nominal — portfolio uplink active", "cmd");
     }, 6500);
 
