@@ -200,7 +200,7 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          email: "anonymous@visitor.com",
+          email: email || "anonymous@visitor.com",
           score: finalScore,
           grade,
           recommendation,
@@ -229,14 +229,14 @@ const AssessmentModal = ({ isOpen, onClose }: AssessmentModalProps) => {
           const formData = new FormData();
           formData.append("access_key", "3b9590e7-73a5-4881-99e7-a956c496bf2d");
           formData.append("name", "Website Self-Assessment Lead");
-          formData.append("email", "anonymous@visitor.com");
+          formData.append("email", email || "anonymous@visitor.com");
           formData.append("from_name", "Antony Portfolio AI Audit");
           formData.append("subject", `New Assessment Lead: ${finalScore}/100 [Grade ${grade}]`);
           formData.append("message", `
 =============================================
 NEW WEBSITE AUDIT ASSESSMENT REPORT
 =============================================
-Lead Email: Anonymous Visitor
+Lead Email: ${email || "Anonymous Visitor"}
 Calculated Score: ${finalScore}/100
 Rating Grade: ${grade}
 Recommendation: ${recommendation}
@@ -362,13 +362,29 @@ ${answersText}
                 Discover performance barriers, security leaks, and conversion bottlenecks on your website. Get your instant score out of 100 in 60 seconds.
               </p>
 
-              <button
-                onClick={() => setStage("quiz")}
-                className="px-8 py-4 rounded-xl bg-[#44443a] hover:bg-white hover:text-black font-bold flex items-center space-x-2 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#44443a]/25"
-              >
-                <span>Start Assessment</span>
-                <ArrowRight size={18} />
-              </button>
+              <div className="flex flex-col items-center w-full max-w-sm space-y-4">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Enter your email to begin"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-[#44443a] transition-colors font-light text-center"
+                  required
+                />
+                <button
+                  onClick={() => {
+                    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+                      alert("Please enter a valid email address to start the assessment.");
+                      return;
+                    }
+                    setStage("quiz");
+                  }}
+                  className="w-full px-8 py-4 rounded-xl bg-[#44443a] hover:bg-white hover:text-black font-bold flex items-center justify-center space-x-2 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-[#44443a]/25 cursor-pointer"
+                >
+                  <span>Start Assessment</span>
+                  <ArrowRight size={18} />
+                </button>
+              </div>
             </div>
           )}
 

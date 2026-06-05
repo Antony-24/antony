@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Footer from "@/components/Footer";
 import {
@@ -194,6 +194,8 @@ export default function NasaData() {
   ]);
   const [trackerLoading, setTrackerLoading] = useState(false);
   const [useSimulatedTracker, setUseSimulatedTracker] = useState(false);
+  const issVideoContainerRef = useRef<HTMLDivElement>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // System telemetry logs
   const [systemLogs, setSystemLogs] = useState<string[]>([
@@ -204,6 +206,24 @@ export default function NasaData() {
   const addLog = (msg: string) => {
     const time = new Date().toLocaleTimeString();
     setSystemLogs((prev) => [`[${time}] ${msg}`, ...prev.slice(0, 10)]);
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      issVideoContainerRef.current?.requestFullscreen().catch((err) => {
+        addLog(`WARNING: Fullscreen failed - ${err.message}`);
+      });
+    } else {
+      document.exitFullscreen();
+    }
   };
 
   // Keyboard close lightbox handler
@@ -935,14 +955,29 @@ export default function NasaData() {
                         </div>
 
                         {/* Beautiful embedded ISS stream frame */}
-                        <div className="w-full aspect-video rounded border border-white/5 overflow-hidden bg-black/60 relative flex items-center justify-center">
+                        <div 
+                          ref={issVideoContainerRef}
+                          className="w-full aspect-video rounded border border-white/5 overflow-hidden bg-black/60 relative flex items-center justify-center group"
+                        >
                           {!useSimulatedTracker ? (
-                            <iframe
-                              src="https://www.ustream.tv/embed/17074538?html5=1&autoplay=1&controls=0&volume=0&mute=1"
-                              title="ISS Live Earth Stream"
-                              className="w-full h-full border-none"
-                              allow="autoplay"
-                            />
+                            <>
+                              <iframe
+                                src="https://www.youtube.com/embed/FuuC4dpSQ1M?autoplay=1&controls=0&mute=1"
+                                title="ISS Live Earth Stream"
+                                className="w-full h-full border-none pointer-events-none"
+                                allow="autoplay; encrypted-media; picture-in-picture"
+                                allowFullScreen
+                              />
+                              {/* Fullscreen Overlay Button */}
+                              <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                <button
+                                  onClick={toggleFullscreen}
+                                  className="px-4 py-2 bg-black/80 hover:bg-white hover:text-black border border-white/20 text-white rounded text-[10px] font-bold tracking-widest uppercase transition-all cursor-pointer shadow-lg"
+                                >
+                                  {isFullscreen ? "EXIT FULLSCREEN" : "FULL SCREEN"}
+                                </button>
+                              </div>
+                            </>
                           ) : (
                             <div className="absolute inset-0 bg-black flex flex-col items-center justify-center p-4">
                               <div className="absolute inset-0 z-0 bg-[linear-gradient(to_right,#111_1px,transparent_1px),linear-gradient(to_bottom,#111_1px,transparent_1px)] bg-[size:1.5rem_1.5rem] opacity-35" />
