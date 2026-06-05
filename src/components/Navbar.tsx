@@ -94,14 +94,17 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
             </motion.button>
           )}
 
-          <motion.a
-            href="#contact"
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="px-4 py-1.5 md:px-6 md:py-2 rounded-full bg-[#44443a] text-white font-semibold text-xs md:text-sm hover:bg-white hover:text-black transition-all shrink-0"
           >
-            Hire Me
-          </motion.a>
+            <Link
+              href="/#contact"
+              className="px-4 py-1.5 md:px-6 md:py-2 rounded-full bg-[#44443a] text-white font-semibold text-xs md:text-sm hover:bg-white hover:text-black transition-all shrink-0 inline-block"
+            >
+              Hire Me
+            </Link>
+          </motion.div>
 
           <button 
             className="md:hidden text-white/80 hover:text-white transition-colors" 

@@ -962,9 +962,9 @@ export default function NasaData() {
                           {!useSimulatedTracker ? (
                             <>
                               <iframe
-                                src="https://www.youtube.com/embed/FuuC4dpSQ1M?autoplay=1&controls=0&mute=1"
+                                src="https://www.youtube.com/embed/FuuC4dpSQ1M?autoplay=1&controls=1&mute=0"
                                 title="ISS Live Earth Stream"
-                                className="w-full h-full border-none pointer-events-none"
+                                className="w-full h-full border-none"
                                 allow="autoplay; encrypted-media; picture-in-picture"
                                 allowFullScreen
                               />
