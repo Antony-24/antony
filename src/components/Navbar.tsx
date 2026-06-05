@@ -29,6 +29,7 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
     { name: "About", href: "/#about" },
     { name: "Projects", href: "/#projects" },
     { name: "NASA Data", href: "/nasa-data" },
+    { name: "ISS Live", href: "/iss-live", isLive: true },
     { name: "ISRO Data", href: "/isro-data" },
     { name: "Weather", href: "/weather" },
     { name: "Contact", href: "/#contact" },
@@ -69,10 +70,16 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
               >
                 <Link
                   href={link.href}
-                  className={`text-xs font-semibold uppercase tracking-widest transition-all duration-200 hover:text-white ${
+                  className={`flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest transition-all duration-200 hover:text-white ${
                     isActive ? "text-white border-b border-[#44443a] pb-1" : "text-white/60"
                   }`}
                 >
+                  {link.isLive && (
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                    </span>
+                  )}
                   {link.name}
                 </Link>
               </motion.div>
@@ -148,10 +155,16 @@ const Navbar = ({ onOpenAssessment }: NavbarProps = {}) => {
                     key={link.name}
                     href={link.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`text-xl font-bold uppercase tracking-widest transition-all duration-200 border-b border-white/5 pb-4 ${
+                    className={`flex items-center gap-3 text-xl font-bold uppercase tracking-widest transition-all duration-200 border-b border-white/5 pb-4 ${
                       isActive ? "text-white" : "text-white/40"
                     }`}
                   >
+                    {link.isLive && (
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                      </span>
+                    )}
                     {link.name}
                   </Link>
                 );
