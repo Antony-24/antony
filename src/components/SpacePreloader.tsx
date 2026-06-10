@@ -38,10 +38,10 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
       const ctx = new Ctx();
       const osc = ctx.createOscillator();
       const gainNode = ctx.createGain();
-      
+
       osc.connect(gainNode);
       gainNode.connect(ctx.destination);
-      
+
       if (isFinal) {
         // Normal rocket engine roar/rumble using lowpass filtered white noise
         const bufSize = 1.8 * ctx.sampleRate;
@@ -52,55 +52,55 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
         }
         const noise = ctx.createBufferSource();
         noise.buffer = buf;
-        
+
         const filter = ctx.createBiquadFilter();
         filter.type = "lowpass";
         filter.frequency.setValueAtTime(120, ctx.currentTime);
         filter.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 1.6);
-        
+
         const noiseGain = ctx.createGain();
         noiseGain.gain.setValueAtTime(0.0, ctx.currentTime);
         noiseGain.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.1);
         noiseGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
-        
+
         // Add a low-frequency hum/organ element to give it weight
         const hum = ctx.createOscillator();
         hum.type = "sawtooth";
         hum.frequency.setValueAtTime(55, ctx.currentTime);
-        
+
         const humFilter = ctx.createBiquadFilter();
         humFilter.type = "lowpass";
         humFilter.frequency.setValueAtTime(80, ctx.currentTime);
-        
+
         const humGain = ctx.createGain();
         humGain.gain.setValueAtTime(0.0, ctx.currentTime);
         humGain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.15);
         humGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
-        
+
         noise.connect(filter);
         filter.connect(noiseGain);
         noiseGain.connect(ctx.destination);
-        
+
         hum.connect(humFilter);
         humFilter.connect(humGain);
         humGain.connect(ctx.destination);
-        
+
         noise.start();
         hum.start();
-        
+
         noise.stop(ctx.currentTime + 1.8);
         hum.stop(ctx.currentTime + 1.8);
       } else {
         // High-pitched cyber pulse tick
         osc.type = "sine";
         osc.frequency.setValueAtTime(1000, ctx.currentTime);
-        
+
         gainNode.gain.setValueAtTime(0.25, ctx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
         osc.start();
         osc.stop(ctx.currentTime + 0.2);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const speakText = (text: string) => {
@@ -110,7 +110,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
       utterance.volume = 1.0;
       utterance.rate = 1.0;
       utterance.pitch = 0.85; // cyber-announcer pitch
-      
+
       const voices = window.speechSynthesis.getVoices();
       const en = voices.filter((v) => v.lang.startsWith("en"));
       const male = en.find((v) => {
@@ -121,7 +121,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
       if (preferred) { utterance.voice = preferred; }
 
       window.speechSynthesis.speak(utterance);
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleStartLaunch = () => {
@@ -131,7 +131,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
     if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel();
     setIsInitialized(true);
     setStatusText("TELEMETRY LINK: ACTIVE");
-    
+
     // Begin countdown quickly
     setTimeout(() => {
       setCount(5);
@@ -251,7 +251,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
               <div className="text-xs md:text-sm font-semibold tracking-wide text-white transition-all">
                 {statusText}
               </div>
-              
+
               {/* Telemetry Faux Glitch Lines */}
               <div className="flex justify-center space-x-1 mt-4">
                 <span className={`w-2 h-1.5 rounded-sm ${isInitialized ? "bg-white" : "bg-white/10 animate-pulse"}`}></span>
@@ -272,7 +272,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
                   whileTap={{ scale: 0.95 }}
                   className="px-8 py-3 rounded-full bg-[#44443a] text-white font-bold text-xs md:text-sm tracking-widest uppercase shadow-lg shadow-black/40 border border-white/10 cursor-pointer hover:bg-white hover:text-black hover:border-white transition-all duration-300"
                 >
-                  Commence Mission Launch
+                  Commence Mission Launch To Website
                 </motion.button>
               ) : (
                 <div className="flex flex-col items-center gap-3">
@@ -298,7 +298,7 @@ const SpacePreloader: React.FC<SpacePreloaderProps> = ({ isAssetsReady = false, 
                 Running launch telemetry checks...
               </div>
             )}
-            
+
             {count !== null && count > 0 && (
               <div className="text-xs text-white/40 tracking-wider animate-pulse uppercase font-mono">
                 Cosmic propulsion charging...
