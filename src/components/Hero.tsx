@@ -2,7 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
-import avatar from "@/assets/antony.jpeg";
+import avatar from "@/assets/antony.png";
 import Image from "next/image";
 
 const Hero = () => {
@@ -104,7 +104,7 @@ const Hero = () => {
           <motion.div
             variants={floatVariants}
             animate=""
-            className="relative z-10 rounded-lg overflow-hidden border-2 border-[#44443a]/40 mx-auto shadow-2xl shadow-[#44443a]/20"
+            className="relative z-10 rounded-lg overflow-hidden mx-auto"
           >
             <Image
               src={avatar}
@@ -112,6 +112,14 @@ const Hero = () => {
               className="w-full h-full object-cover"
               priority
             />
+            {/* Left edge fade */}
+            <div className="absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-black via-black/80 to-transparent z-20 pointer-events-none" />
+            {/* Right edge fade — hard line killer */}
+            <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-black via-black/80 to-transparent z-20 pointer-events-none" />
+            {/* Bottom edge fade */}
+            <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black via-black/70 to-transparent z-20 pointer-events-none" />
+            {/* Top edge fade */}
+            <div className="absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-black via-black/70 to-transparent z-20 pointer-events-none" />
           </motion.div>
 
           {/* Decorative premium glows */}
